@@ -1,0 +1,241 @@
+# /etc/nixos/configuration.nix
+# Configuração do NixOS adaptada para o Zenith (Hyprland + SDDM)
+
+{ config, pkgs, ... }:
+
+let
+  zenith-sddm-theme = pkgs.stdenvNoCC.mkDerivation {
+    pname = "zenith-sddm-theme";
+    version = "1.0.0";
+    src = /home/levandoski/Zenith/sddm/zenith;
+    dontBuild = true;
+    installPhase = ''
+      mkdir -p $out/share/sddm/themes/zenith
+      cp -r * $out/share/sddm/themes/zenith/
+    '';
+  };
+in
+{
+  imports =
+    [
+      ./hardware-configuration.nix
+      ./desktop-entries.nix
+    ];
+
+  # Bootloader (Systemd-boot)
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  # Rede com iwd nativo
+  networking = {
+    networkmanager.enable = false;
+    wireless.enable = false;
+    wireless.iwd.enable = true;
+  };
+
+  # Fuso horário & Localização
+  time.timeZone = "America/Sao_Paulo";
+  i18n.defaultLocale = "pt_BR.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "pt_BR.UTF-8";
+    LC_IDENTIFICATION = "pt_BR.UTF-8";
+    LC_MEASUREMENT = "pt_BR.UTF-8";
+    LC_MONETARY = "pt_BR.UTF-8";
+    LC_NAME = "pt_BR.UTF-8";
+    LC_NUMERIC = "pt_BR.UTF-8";
+    LC_PAPER = "pt_BR.UTF-8";
+    LC_TELEPHONE = "pt_BR.UTF-8";
+    LC_TIME = "pt_BR.UTF-8";
+  };
+
+  # Servidor gráfico básico (necessário para SDDM/Wayland)
+  services.xserver.enable = true;
+
+  # Hyprland & Portal Wayland
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
+
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-hyprland ];
+  };
+
+  # Display Manager: SDDM com tema Zenith (GNOME / GDM desativados)
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
+    theme = "zenith";
+    extraPackages = [
+      zenith-sddm-theme
+      pkgs.qt6.qtdeclarative
+      pkgs.qt6.qtsvg
+      pkgs.qt6.qtmultimedia
+    ];
+  };
+
+  # Diretório compartilhado para o wallpaper e cor de destaque do SDDM
+  systemd.tmpfiles.rules = [
+    "d /var/lib/zenith 0777 root root -"
+  ];
+
+  # Autenticação PAM para Swaylock (tela de bloqueio e cofre de senhas)
+  security.pam.services.swaylock = {};
+
+  # Layout do teclado
+  services.xserver.xkb = {
+    layout = "br";
+    variant = "abnt2";
+  };
+  console.keyMap = "br-abnt2";
+
+  # Impressão (CUPS)
+  services.printing.enable = true;
+
+  # Áudio PipeWire
+  services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    wireplumber.enable = true;
+  };
+
+  # Serviços de sistema para o Zenith
+  hardware.bluetooth.enable = true;
+  services.power-profiles-daemon.enable = true;
+  services.upower.enable = true;
+  hardware.i2c.enable = true;
+
+  # Configuração de Usuário
+  users.users."levandoski" = {
+    isNormalUser = true;
+    description = "levandoski";
+    extraGroups = [ "wheel" "i2c" ];
+    shell = pkgs.fish;
+    packages = with pkgs; [];
+  };
+
+  programs.fish.enable = true;
+
+  # Fontes
+  fonts.packages = with pkgs; [
+    nerd-fonts.jetbrains-mono
+    noto-fonts
+    noto-fonts-color-emoji
+    noto-fonts-cjk-sans
+  ];
+
+  # Navegador Firefox
+  programs.firefox.enable = true;
+
+  # Steam & Jogos
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+  };
+  programs.gamemode.enable = true;
+
+  # Permitir pacotes proprietários
+  nixpkgs.config.allowUnfree = true;
+
+  # Pacotes do sistema
+  environment.systemPackages = with pkgs; [
+    # Core & Shell Zenith
+    hyprland
+    quickshell
+    hyprpaper
+    hyprsunset
+    foot
+    fish
+    eza
+    zoxide
+    bat
+    fastfetch
+    yazi
+    swaylock
+
+    # Screenshot, Clipboard & Utilitários Zenith
+    wl-clipboard        # Fornece wl-copy e wl-paste (essencial para printscreen e clipboard)
+    cliphist            # Gerenciador de histórico da área de transferência (Super+V)
+    grim                # Captura de tela para Wayland (PrintScreen / Super+Shift+S)
+    slurp               # Seleção de região da tela
+    python3             # Necessário para o corte de alta velocidade (shotcrop.py)
+    wtype               # Simulação de digitação
+    wf-recorder         # Gravação de tela (Super+P)
+    ffmpeg              # Manipulação de vídeo e blur do SDDM
+    brightnessctl       # Controle de brilho
+    ddcutil             # Brilho de monitores externos (I2C)
+    playerctl           # Controle de mídia (teclas multimídia)
+    wireplumber         # Gerenciamento de áudio PipeWire
+    cava                # Visualizador de áudio
+    mpvpaper            # Papéis de parede animados em vídeo
+    bibata-cursors      # Tema de cursores Bibata
+    papirus-icon-theme  # Tema de ícones Papirus
+    udisks2             # Gerenciamento de discos
+    udiskie             # Montagem automática de pendrives
+    gvfs                # Sistema de arquivos virtual
+    openssl
+    xdg-utils
+    glib
+    upower
+
+    # Bibliotecas Qt6 / QML (essenciais para QuickShell e SDDM)
+    qt6.qtmultimedia
+    qt6.qtdeclarative
+    qt6.qtsvg
+
+    # Aplicativos do usuário
+    discord
+    spotify
+    kitty
+    git
+    vscode
+    modrinth-app
+    steam-run
+    pavucontrol
+  ];
+
+  # Variáveis de sessão do ambiente
+  environment.sessionVariables = {
+    LIBVA_DRIVER_NAME = "nvidia";
+    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+    GBM_BACKEND = "nvidia-drm";
+    QML2_IMPORT_PATH = "/run/current-system/sw/lib/qt-6/qml";
+  };
+
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [];
+
+  system.stateVersion = "26.05";
+
+  # Driver da NVIDIA & Configuração Híbrida / PRIME
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+    powerManagement.enable = false;
+    powerManagement.finegrained = false;
+    open = false;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+
+    prime = {
+      offload = {
+        enable = true;
+        enableOffloadCmd = true;
+      };
+      intelBusId = "PCI:0:2:0";
+      nvidiaBusId = "PCI:1:0:0";
+    };
+  };
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+}

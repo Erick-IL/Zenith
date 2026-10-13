@@ -1,0 +1,11 @@
+[SddmGreeterTheme]
+Name=Zenith
+Description=Zenith dynamic island style login screen
+Author=Ensi
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=zenith
+Theme-API=2.0

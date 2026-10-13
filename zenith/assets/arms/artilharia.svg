@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g fill="#ffffff" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Tubo de Canhão 1 (\) -->
+    <line x1="20" y1="80" x2="80" y2="20" stroke-width="5.5"/>
+    <circle cx="17" cy="83" r="3.5" stroke-width="1"/>
+    <line x1="77" y1="17" x2="83" y2="23" stroke-width="2"/>
+
+    <!-- Tubo de Canhão 2 (/) -->
+    <line x1="80" y1="80" x2="20" y2="20" stroke-width="5.5"/>
+    <circle cx="83" cy="83" r="3.5" stroke-width="1"/>
+    <line x1="23" y1="17" x2="17" y2="23" stroke-width="2"/>
+
+    <!-- Granada Chamejante Central (Crisóstomo) -->
+    <circle cx="50" cy="53" r="13" stroke-width="1.5"/>
+    <!-- Labaredas superiores -->
+    <path d="M 45 42 C 40 33 34 32 40 20 C 44 26 47 27 49 21 C 50 14 53 10 55 6 C 57 15 63 18 58 25 C 65 28 61 36 55 42 Z" stroke-width="1"/>
+  </g>
+</svg>

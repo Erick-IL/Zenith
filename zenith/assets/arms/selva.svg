@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g fill="#ffffff" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Facão de Mato Cruzado Atrás -->
+    <path d="M 14 84 L 82 18 L 86 22 L 18 88 Z" stroke-width="1.5"/>
+    <line x1="78" y1="14" x2="88" y2="24" stroke-width="2"/>
+
+    <!-- Cabeça da Onça-Pintada de Perfil -->
+    <path d="M 68 50 C 68 40 60 32 48 32 C 45 32 40 26 36 28 C 34 33 36 38 34 42 C 28 46 22 52 22 60 C 22 66 26 70 32 72 L 44 76 C 54 78 64 74 68 64 Z" stroke-width="2" fill="none"/>
+    <!-- Focinho e Boca Aberta Rugindo -->
+    <path d="M 68 50 L 78 52 C 78 56 74 58 70 60 L 76 64 C 72 68 66 66 64 66" stroke-width="1.5"/>
+    <!-- Dente Canino -->
+    <polygon points="73,54 75,59 71,58" stroke-width="0.5"/>
+    <!-- Olho Felino -->
+    <ellipse cx="50" cy="46" rx="3.5" ry="2.5" stroke-width="1"/>
+    <!-- Orelha -->
+    <path d="M 37 28 C 38 23 44 24 45 29" stroke-width="1.5"/>
+    <!-- Rosetas / Manchas da Onça -->
+    <circle cx="36" cy="50" r="2" stroke-width="1"/>
+    <circle cx="44" cy="62" r="2.5" stroke-width="1"/>
+    <circle cx="56" cy="64" r="2" stroke-width="1"/>
+  </g>
+</svg>

@@ -1,0 +1,569 @@
+[
+  {
+    "code": "1f680",
+    "char": "🚀",
+    "name": "Foguete",
+    "tags": "rocket launch deploy",
+    "svg": "assets/emojis/1f680.svg"
+  },
+  {
+    "code": "1f525",
+    "char": "🔥",
+    "name": "Fogo",
+    "tags": "fire hot trend trending",
+    "svg": "assets/emojis/1f525.svg"
+  },
+  {
+    "code": "2728",
+    "char": "✨",
+    "name": "Brilho",
+    "tags": "sparkles new magic novidade",
+    "svg": "assets/emojis/2728.svg"
+  },
+  {
+    "code": "1f41b",
+    "char": "🐛",
+    "name": "Bug",
+    "tags": "bug inseto fix debug defeito",
+    "svg": "assets/emojis/1f41b.svg"
+  },
+  {
+    "code": "26a1",
+    "char": "⚡",
+    "name": "Raio",
+    "tags": "lightning fast zap energia velocidade",
+    "svg": "assets/emojis/26a1.svg"
+  },
+  {
+    "code": "1f512",
+    "char": "🔒",
+    "name": "Cadeado",
+    "tags": "lock secure auth seguranca",
+    "svg": "assets/emojis/1f512.svg"
+  },
+  {
+    "code": "1f513",
+    "char": "🔓",
+    "name": "Cadeado Aberto",
+    "tags": "unlock open aberto",
+    "svg": "assets/emojis/1f513.svg"
+  },
+  {
+    "code": "1f511",
+    "char": "🔑",
+    "name": "Chave",
+    "tags": "key password token chave senha",
+    "svg": "assets/emojis/1f511.svg"
+  },
+  {
+    "code": "1f4e6",
+    "char": "📦",
+    "name": "Pacote",
+    "tags": "package box build container pacote",
+    "svg": "assets/emojis/1f4e6.svg"
+  },
+  {
+    "code": "1f389",
+    "char": "🎉",
+    "name": "Festa",
+    "tags": "party celebrate tada parabens festa",
+    "svg": "assets/emojis/1f389.svg"
+  },
+  {
+    "code": "1f9e0",
+    "char": "🧠",
+    "name": "Cérebro",
+    "tags": "brain ai ia inteligencia neural",
+    "svg": "assets/emojis/1f9e0.svg"
+  },
+  {
+    "code": "1f916",
+    "char": "🤖",
+    "name": "Robô",
+    "tags": "robot bot automacao assistente",
+    "svg": "assets/emojis/1f916.svg"
+  },
+  {
+    "code": "1f4bb",
+    "char": "💻",
+    "name": "Computador",
+    "tags": "computer pc laptop dev notebook",
+    "svg": "assets/emojis/1f4bb.svg"
+  },
+  {
+    "code": "1f4f1",
+    "char": "📱",
+    "name": "Celular",
+    "tags": "mobile phone smartphone tela",
+    "svg": "assets/emojis/1f4f1.svg"
+  },
+  {
+    "code": "2699-fe0f",
+    "char": "⚙️",
+    "name": "Engrenagem",
+    "tags": "gear config settings ajustes opcoes",
+    "svg": "assets/emojis/2699-fe0f.svg"
+  },
+  {
+    "code": "1f6e0-fe0f",
+    "char": "🛠️",
+    "name": "Ferramentas",
+    "tags": "tools hammer wrench fix manutencao",
+    "svg": "assets/emojis/1f6e0-fe0f.svg"
+  },
+  {
+    "code": "1f3a8",
+    "char": "🎨",
+    "name": "Arte",
+    "tags": "art palette design color frontend css",
+    "svg": "assets/emojis/1f3a8.svg"
+  },
+  {
+    "code": "1f9ea",
+    "char": "🧪",
+    "name": "Teste",
+    "tags": "test lab ciencia experiment unit",
+    "svg": "assets/emojis/1f9ea.svg"
+  },
+  {
+    "code": "2615",
+    "char": "☕",
+    "name": "Café",
+    "tags": "coffee break cafe dev code",
+    "svg": "assets/emojis/2615.svg"
+  },
+  {
+    "code": "1f4dd",
+    "char": "📝",
+    "name": "Anotação",
+    "tags": "note memo docs doc texto readme",
+    "svg": "assets/emojis/1f4dd.svg"
+  },
+  {
+    "code": "1f50d",
+    "char": "🔍",
+    "name": "Lupa",
+    "tags": "search find buscar procurar query",
+    "svg": "assets/emojis/1f50d.svg"
+  },
+  {
+    "code": "1f514",
+    "char": "🔔",
+    "name": "Sino",
+    "tags": "bell alert notif notificacao aviso",
+    "svg": "assets/emojis/1f514.svg"
+  },
+  {
+    "code": "1f4a1",
+    "char": "💡",
+    "name": "Ideia",
+    "tags": "idea tip lampada insight solucao",
+    "svg": "assets/emojis/1f4a1.svg"
+  },
+  {
+    "code": "2705",
+    "char": "✅",
+    "name": "Check",
+    "tags": "check mark sucesso ok pronto feito",
+    "svg": "assets/emojis/2705.svg"
+  },
+  {
+    "code": "274c",
+    "char": "❌",
+    "name": "Erro",
+    "tags": "cross mark fail erro cancelar fechar",
+    "svg": "assets/emojis/274c.svg"
+  },
+  {
+    "code": "26a0-fe0f",
+    "char": "⚠️",
+    "name": "Alerta",
+    "tags": "warning aviso cuidado atencao",
+    "svg": "assets/emojis/26a0-fe0f.svg"
+  },
+  {
+    "code": "1f6a8",
+    "char": "🚨",
+    "name": "Sirene",
+    "tags": "siren emergencia alerta perigo critico",
+    "svg": "assets/emojis/1f6a8.svg"
+  },
+  {
+    "code": "1f40b",
+    "char": "🐋",
+    "name": "Baleia",
+    "tags": "whale docker container podman",
+    "svg": "assets/emojis/1f40b.svg"
+  },
+  {
+    "code": "1f40d",
+    "char": "🐍",
+    "name": "Cobra",
+    "tags": "snake python linguagem",
+    "svg": "assets/emojis/1f40d.svg"
+  },
+  {
+    "code": "1f980",
+    "char": "🦀",
+    "name": "Caranguejo",
+    "tags": "crab rust linguagem",
+    "svg": "assets/emojis/1f980.svg"
+  },
+  {
+    "code": "1f435",
+    "char": "🐵",
+    "name": "Macaco",
+    "tags": "monkey dev code animal",
+    "svg": "assets/emojis/1f435.svg"
+  },
+  {
+    "code": "1f984",
+    "char": "🦄",
+    "name": "Unicórnio",
+    "tags": "unicorn startup startup magica",
+    "svg": "assets/emojis/1f984.svg"
+  },
+  {
+    "code": "1f310",
+    "char": "🌐",
+    "name": "Globo",
+    "tags": "web internet browser rede online site",
+    "svg": "assets/emojis/1f310.svg"
+  },
+  {
+    "code": "1f6a7",
+    "char": "🚧",
+    "name": "Construção",
+    "tags": "construction dev manutencao em obras",
+    "svg": "assets/emojis/1f6a7.svg"
+  },
+  {
+    "code": "1f4ac",
+    "char": "💬",
+    "name": "Mensagem",
+    "tags": "message chat conversa comentario balão",
+    "svg": "assets/emojis/1f4ac.svg"
+  },
+  {
+    "code": "1f4ca",
+    "char": "📊",
+    "name": "Gráfico",
+    "tags": "chart stats analise metricas dados",
+    "svg": "assets/emojis/1f4ca.svg"
+  },
+  {
+    "code": "1f4c8",
+    "char": "📈",
+    "name": "Crescimento",
+    "tags": "chart up alta lucro evolucao",
+    "svg": "assets/emojis/1f4c8.svg"
+  },
+  {
+    "code": "1f4c9",
+    "char": "📉",
+    "name": "Queda",
+    "tags": "chart down queda prejuizo baixa",
+    "svg": "assets/emojis/1f4c9.svg"
+  },
+  {
+    "code": "1f4b0",
+    "char": "💰",
+    "name": "Dinheiro",
+    "tags": "money cash grana pagamento valor preco",
+    "svg": "assets/emojis/1f4b0.svg"
+  },
+  {
+    "code": "1f4b3",
+    "char": "💳",
+    "name": "Cartão",
+    "tags": "credit card cartao pagamento credito",
+    "svg": "assets/emojis/1f4b3.svg"
+  },
+  {
+    "code": "1f552",
+    "char": "🕒",
+    "name": "Relógio",
+    "tags": "clock time hora tempo prazo",
+    "svg": "assets/emojis/1f552.svg"
+  },
+  {
+    "code": "1f4c5",
+    "char": "📅",
+    "name": "Calendário",
+    "tags": "calendar data agenda reuniao",
+    "svg": "assets/emojis/1f4c5.svg"
+  },
+  {
+    "code": "2b50",
+    "char": "⭐",
+    "name": "Estrela",
+    "tags": "star estrela favorito star destaque",
+    "svg": "assets/emojis/2b50.svg"
+  },
+  {
+    "code": "1f3c6",
+    "char": "🏆",
+    "name": "Troféu",
+    "tags": "trophy win premio vitoria campeao",
+    "svg": "assets/emojis/1f3c6.svg"
+  },
+  {
+    "code": "1f3af",
+    "char": "🎯",
+    "name": "Alvo",
+    "tags": "target goal foco objetivo meta",
+    "svg": "assets/emojis/1f3af.svg"
+  },
+  {
+    "code": "1f508",
+    "char": "🔈",
+    "name": "Som",
+    "tags": "sound audio volume som baixo",
+    "svg": "assets/emojis/1f508.svg"
+  },
+  {
+    "code": "1f50a",
+    "char": "🔊",
+    "name": "Som Alto",
+    "tags": "volume high som audio musica",
+    "svg": "assets/emojis/1f50a.svg"
+  },
+  {
+    "code": "1f507",
+    "char": "🔇",
+    "name": "Mudo",
+    "tags": "mute sem som silencio desligado",
+    "svg": "assets/emojis/1f507.svg"
+  },
+  {
+    "code": "1f44d",
+    "char": "👍",
+    "name": "Joinha",
+    "tags": "thumbs up like ok bom positivo",
+    "svg": "assets/emojis/1f44d.svg"
+  },
+  {
+    "code": "1f44e",
+    "char": "👎",
+    "name": "Deslike",
+    "tags": "thumbs down dislike ruim negativo",
+    "svg": "assets/emojis/1f44e.svg"
+  },
+  {
+    "code": "1f44f",
+    "char": "👏",
+    "name": "Palmas",
+    "tags": "clap applause parabens otimo",
+    "svg": "assets/emojis/1f44f.svg"
+  },
+  {
+    "code": "1f64c",
+    "char": "🙌",
+    "name": "Comemoração",
+    "tags": "celebration maos para o alto viva",
+    "svg": "assets/emojis/1f64c.svg"
+  },
+  {
+    "code": "1f91d",
+    "char": "🤝",
+    "name": "Acordo",
+    "tags": "handshake acordo aperto parceria fechar",
+    "svg": "assets/emojis/1f91d.svg"
+  },
+  {
+    "code": "1f64f",
+    "char": "🙏",
+    "name": "Por favor / Obrigado",
+    "tags": "please thanks agradecimento oracao",
+    "svg": "assets/emojis/1f64f.svg"
+  },
+  {
+    "code": "2764-fe0f",
+    "char": "❤️",
+    "name": "Coração Vermelho",
+    "tags": "heart love amor vermelho love",
+    "svg": "assets/emojis/2764-fe0f.svg"
+  },
+  {
+    "code": "1f499",
+    "char": "💙",
+    "name": "Coração Azul",
+    "tags": "blue heart amor confianca azul",
+    "svg": "assets/emojis/1f499.svg"
+  },
+  {
+    "code": "1f49c",
+    "char": "💜",
+    "name": "Coração Roxo",
+    "tags": "purple heart roxo panacea",
+    "svg": "assets/emojis/1f49c.svg"
+  },
+  {
+    "code": "1f5a4",
+    "char": "🖤",
+    "name": "Coração Preto",
+    "tags": "black heart preto escuro dark",
+    "svg": "assets/emojis/1f5a4.svg"
+  },
+  {
+    "code": "1f4af",
+    "char": "💯",
+    "name": "Cem Pontos",
+    "tags": "hundred nota cem perfeito 100",
+    "svg": "assets/emojis/1f4af.svg"
+  },
+  {
+    "code": "1f600",
+    "char": "😀",
+    "name": "Sorriso",
+    "tags": "smile happy feliz alegre",
+    "svg": "assets/emojis/1f600.svg"
+  },
+  {
+    "code": "1f602",
+    "char": "😂",
+    "name": "Rindo Muito",
+    "tags": "joy risada lol choro de rir gargalhada",
+    "svg": "assets/emojis/1f602.svg"
+  },
+  {
+    "code": "1f923",
+    "char": "🤣",
+    "name": "Rolando de Rir",
+    "tags": "rofl gargalhada muito bom haha",
+    "svg": "assets/emojis/1f923.svg"
+  },
+  {
+    "code": "1f60e",
+    "char": "😎",
+    "name": "Óculos Escuros",
+    "tags": "cool style top demais estiloso",
+    "svg": "assets/emojis/1f60e.svg"
+  },
+  {
+    "code": "1f914",
+    "char": "🤔",
+    "name": "Pensativo",
+    "tags": "thinking duvida pensar reflexao hum",
+    "svg": "assets/emojis/1f914.svg"
+  },
+  {
+    "code": "1f928",
+    "char": "🤨",
+    "name": "Desconfiado",
+    "tags": "skeptical sobrancelha desconfiado duvida",
+    "svg": "assets/emojis/1f928.svg"
+  },
+  {
+    "code": "1f92f",
+    "char": "🤯",
+    "name": "Mente Explodindo",
+    "tags": "mind blown choque surpresa incrivel",
+    "svg": "assets/emojis/1f92f.svg"
+  },
+  {
+    "code": "1f97a",
+    "char": "🥺",
+    "name": "Olhar Pidinho",
+    "tags": "pleading fofo please carinha",
+    "svg": "assets/emojis/1f97a.svg"
+  },
+  {
+    "code": "1f62d",
+    "char": "😭",
+    "name": "Chorando",
+    "tags": "crying choro lagrima tristeza",
+    "svg": "assets/emojis/1f62d.svg"
+  },
+  {
+    "code": "1f631",
+    "char": "😱",
+    "name": "Gritando",
+    "tags": "screaming assustado choque pânico",
+    "svg": "assets/emojis/1f631.svg"
+  },
+  {
+    "code": "1f621",
+    "char": "😡",
+    "name": "Bravo",
+    "tags": "angry irritado raiva fúria",
+    "svg": "assets/emojis/1f621.svg"
+  },
+  {
+    "code": "1f973",
+    "char": "🥳",
+    "name": "Festa",
+    "tags": "partying aniversario comemorar festa",
+    "svg": "assets/emojis/1f973.svg"
+  },
+  {
+    "code": "1f609",
+    "char": "😉",
+    "name": "Piscada",
+    "tags": "wink piscadinha cumplicidade",
+    "svg": "assets/emojis/1f609.svg"
+  },
+  {
+    "code": "1f60d",
+    "char": "😍",
+    "name": "Apaixonado",
+    "tags": "heart eyes apaixonado lindo amei",
+    "svg": "assets/emojis/1f60d.svg"
+  },
+  {
+    "code": "1f60f",
+    "char": "😏",
+    "name": "Sorriso Malicioso",
+    "tags": "smirk malicioso deboche ironia",
+    "svg": "assets/emojis/1f60f.svg"
+  },
+  {
+    "code": "1f644",
+    "char": "🙄",
+    "name": "Revirando Olhos",
+    "tags": "eye roll desdem cansado aff",
+    "svg": "assets/emojis/1f644.svg"
+  },
+  {
+    "code": "1f62c",
+    "char": "😬",
+    "name": "Careta",
+    "tags": "grimacing eita tenso situacao",
+    "svg": "assets/emojis/1f62c.svg"
+  },
+  {
+    "code": "1f910",
+    "char": "🤐",
+    "name": "Boca Fechada",
+    "tags": "zipper segredo calado quieto",
+    "svg": "assets/emojis/1f910.svg"
+  },
+  {
+    "code": "1f634",
+    "char": "😴",
+    "name": "Dormindo",
+    "tags": "sleeping sono zzz descanso",
+    "svg": "assets/emojis/1f634.svg"
+  },
+  {
+    "code": "1f47b",
+    "char": "👻",
+    "name": "Fantasma",
+    "tags": "ghost assombro susto divertido",
+    "svg": "assets/emojis/1f47b.svg"
+  },
+  {
+    "code": "1f480",
+    "char": "💀",
+    "name": "Caveira",
+    "tags": "skull morte morto perigo rip",
+    "svg": "assets/emojis/1f480.svg"
+  },
+  {
+    "code": "1f4a9",
+    "char": "💩",
+    "name": "Cocô",
+    "tags": "poop bosta fezes engraçado",
+    "svg": "assets/emojis/1f4a9.svg"
+  }
+]

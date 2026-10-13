@@ -1,0 +1,114 @@
+# The GRUB theme "Zenith" is the same language as the dynamic island:
+# Fav theme wallpaper, highlight capsule on the selected item, nothing extra.
+#
+# Font names are written exactly as they are inside .pf2, and not as
+# they were called during assembly: grub-mkfont adds a style to the family, and from
+# "Zenith Regular" becomes "Zenith Regular Regular". Didn't match at least
+# letter - GRUB silently does not find the font and draws a simple menu instead of the theme, without
+# single error message. Check the name inside the file:
+#   strings zenith18.pf2 | head -3
+
+desktop-image: "background.png"
+desktop-color: "#050506"
+
+title-text: ""
+
+# Console box (C key) and bootloader service messages. Stands below and
+# low: in it GRUB prints “Loading Linux...” before transferring
+# kernel control, and before it looked like a black window in the middle of the screen -
+# the box occupied the center and was almost opaque.
+terminal-font: "Zenith Regular Regular 18"
+terminal-box: "menu_*.png"
+terminal-left: "12%"
+terminal-top: "72%"
+terminal-width: "76%"
+terminal-height: "24%"
+
+message-font: "Zenith Regular Regular 18"
+message-color: "#f2f2f2"
+message-bg-color: "#050506"
+
+# ------------------------------------------------------------------ hat
++ label {
+    left = 0
+    top = 16%
+    width = 100%
+    align = "center"
+    text = "Zenith"
+    font = "Zenith Bold Bold 22"
+    color = "#f2f2f2"
+}
+
++ label {
+    left = 0
+    top = 16%+34
+    width = 100%
+    align = "center"
+    text = "Select system"
+    font = "Zenith Small Regular 14"
+    color = "#7a7a7a"
+}
+
+# -------------------------------------------------------------- the menu itself
++ boot_menu {
+    left = 50%-260
+    width = 520
+    top = 32%
+    height = 44%
+
+    item_font = "Zenith Regular Regular 18"
+    item_color = "#c8c8c8"
+    selected_item_font = "Zenith Regular Regular 18"
+    selected_item_color = "#ffffff"
+
+    # GRUB draws highlight AROUND the line: padding is added to its height
+    # frames equal to the corner image (12 px top and bottom). Therefore the gap
+    # between points we keep more than the sum of these indents - 28 versus 24 - and
+    # the capsule is guaranteed to remain in its line.
+    item_height = 40
+    item_spacing = 28
+    item_padding = 16
+    item_icon_space = 0
+    icon_width = 0
+    icon_height = 0
+
+    selected_item_pixmap_style = "select_*.png"
+
+    scrollbar = false
+}
+
+# ------------------------------------------------- countdown bar
++ progress_bar {
+    id = "__timeout__"
+    left = 50%-180
+    width = 360
+    top = 88%
+    height = 4
+
+    show_text = false
+    fg_color = "#c65a47"
+    bg_color = "#1c1c20"
+    border_color = "#00000000"
+}
+
++ label {
+    id = "__timeout__"
+    left = 0
+    top = 82%+16
+    width = 100%
+    align = "center"
+    text = "@TIMEOUT_NOTIFICATION_SHORT@"
+    font = "Zenith Small Regular 14"
+    color = "#6e6e6e"
+}
+
+# ------------------------------------------------------- key hint
++ label {
+    left = 0
+    top = 100%-42
+    width = 100%
+    align = "center"
+    text = "Arrows - select     Enter - boot     E - edit     C - console"
+    font = "Zenith Small Regular 14"
+    color = "#5a5a5a"
+}

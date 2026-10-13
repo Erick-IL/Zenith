@@ -1,0 +1,29 @@
+# Python cache & virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# State & runtime logs
+*.log
+*.streak
+*.map
+.version
+.vibrance
+.whatsnew
+.missingdeps
+.obsoletedeps
+last_wifi_ssid
+files_state.json
+
+# Nix build outputs
+result
+result-*
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

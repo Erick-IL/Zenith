@@ -1,0 +1,171 @@
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+
+// Select from a long list: fonts, time zones, date formats.
+// The list is expanded directly in the page flow, and not as a pop-up window -
+// pop-up in a scrollable card would have to be fiddled with for the contents and
+// it would still be cut off by the edge of the window.
+ColumnLayout {
+    id: pick
+
+    property var sys
+    property string label: ""
+    // list of strings or [{ id, text }]
+    property var options: []
+    property string value: ""
+    property bool open: false
+    // how many lines are visible before the own scroll appears
+    property int visibleRows: 7
+    property bool searchable: false
+    property string query: ""
+    signal picked(string id)
+
+    function idOf(o)   { return (o && o.id !== undefined) ? o.id : o; }
+    function textOf(o) { return (o && o.text !== undefined) ? o.text : o; }
+    function textFor(id) {
+        for (var i = 0; i < pick.options.length; i++)
+            if (idOf(pick.options[i]) === id) return textOf(pick.options[i]);
+        return id;
+    }
+    readonly property var filteredOptions: {
+        if (!pick.searchable || !pick.query.length) return pick.options;
+        var q = pick.query.toLowerCase();
+        return pick.options.filter(o => String(pick.textOf(o)).toLowerCase().indexOf(q) >= 0
+                                        || String(pick.idOf(o)).toLowerCase().indexOf(q) >= 0);
+    }
+    onOpenChanged: if (!open) { query = ""; searchField.clear(); }
+
+    Layout.fillWidth: true
+    spacing: 8
+
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: 12
+
+        Text {
+            Layout.fillWidth: true
+            text: pick.label
+            color: pick.sys.colFg
+            elide: Text.ElideRight
+            font { family: pick.sys.fontBody; pixelSize: pick.sys.fontSize - 1 }
+        }
+
+        Rectangle {
+            Layout.preferredWidth: Math.min(260, Math.max(140, curText.implicitWidth + 44))
+            Layout.preferredHeight: 30
+            radius: 10
+            color: headMa.containsMouse || pick.open
+                   ? Qt.rgba(pick.sys.colFg.r, pick.sys.colFg.g, pick.sys.colFg.b, 0.12)
+                   : Qt.rgba(pick.sys.colFg.r, pick.sys.colFg.g, pick.sys.colFg.b, 0.07)
+            Behavior on color { ColorAnimation { duration: pick.sys.animFade } }
+
+            Text {
+                id: curText
+                anchors.left: parent.left
+                anchors.leftMargin: 12
+                anchors.right: chev.left
+                anchors.rightMargin: 6
+                anchors.verticalCenter: parent.verticalCenter
+                text: pick.textFor(pick.value)
+                color: pick.sys.colFg
+                elide: Text.ElideRight
+                font { family: pick.sys.fontBody; pixelSize: pick.sys.fontSize - 3 }
+            }
+
+            Text {
+                id: chev
+                anchors.right: parent.right
+                anchors.rightMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                // the chevron is up when the list is expanded, and down when it is collapsed
+                text: String.fromCodePoint(pick.open ? 0xF0143 : 0xF0140)
+                color: pick.sys.colMuted
+                font { family: pick.sys.fontFam; pixelSize: pick.sys.fontSize - 2 }
+            }
+
+            MouseArea {
+                id: headMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: pick.open = !pick.open
+            }
+        }
+    }
+
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.preferredHeight: pick.open
+            ? Math.min(pick.visibleRows, Math.max(1, pick.filteredOptions.length)) * 28 + 12
+              + (pick.searchable ? 38 : 0) : 0
+        clip: true
+        visible: Layout.preferredHeight > 0
+        radius: 12
+        color: Qt.rgba(pick.sys.colFg.r, pick.sys.colFg.g, pick.sys.colFg.b, 0.05)
+        Behavior on Layout.preferredHeight {
+            NumberAnimation { duration: pick.sys.animFade; easing.type: Easing.OutCubic }
+        }
+
+        TextField {
+            id: searchField
+            visible: pick.searchable
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 6
+            height: 30
+            placeholderText: pick.sys.tr("Поиск языка или кода")
+            onTextEdited: pick.query = text
+            color: pick.sys.colFg
+            placeholderTextColor: pick.sys.colMuted
+            background: null
+            font { family: pick.sys.fontBody; pixelSize: pick.sys.fontSize - 3 }
+        }
+
+        ListView {
+            id: list
+            anchors.fill: parent
+            anchors.margins: 6
+            anchors.topMargin: pick.searchable ? 38 : 6
+            clip: true
+            model: pick.filteredOptions
+            boundsBehavior: Flickable.StopAtBounds
+            currentIndex: -1
+
+            delegate: Rectangle {
+                id: opt
+                required property var modelData
+                readonly property string oid: pick.idOf(opt.modelData)
+
+                width: list.width
+                height: 28
+                radius: 8
+                color: pick.value === opt.oid
+                       ? Qt.rgba(pick.sys.colOn.r, pick.sys.colOn.g, pick.sys.colOn.b, 0.25)
+                       : (optMa.containsMouse
+                          ? Qt.rgba(pick.sys.colFg.r, pick.sys.colFg.g, pick.sys.colFg.b, 0.08)
+                          : "transparent")
+
+                Text {
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    verticalAlignment: Text.AlignVCenter
+                    text: pick.textOf(opt.modelData)
+                    color: pick.value === opt.oid ? pick.sys.colFg : pick.sys.colMuted
+                    elide: Text.ElideRight
+                    font { family: pick.sys.fontBody; pixelSize: pick.sys.fontSize - 3 }
+                }
+
+                MouseArea {
+                    id: optMa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: { pick.picked(opt.oid); pick.open = false; }
+                }
+            }
+        }
+    }
+}

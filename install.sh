@@ -29,7 +29,7 @@ DO_LINK=0
 DO_BACKUP=1
 DO_SDDM=1
 DO_GRUB=1
-DO_NIXOS=1
+DO_NIXOS=0
 AUTO_YES=0
 
 usage() {
@@ -43,7 +43,7 @@ Opções:
   --no-backup       Não criar cópias de backup das configurações existentes
   --no-sddm         Não instalar tema do SDDM
   --no-grub         Não instalar tema do GRUB
-  --no-nixos        Não injetar configuração no NixOS
+  --nixos           Injetar módulo Zenith no /etc/nixos/configuration.nix
   -h, --help        Exibir esta ajuda
 EOF
     exit 0
@@ -57,7 +57,7 @@ while [ $# -gt 0 ]; do
         --no-backup)   DO_BACKUP=0 ;;
         --no-sddm)     DO_SDDM=0 ;;
         --no-grub)     DO_GRUB=0 ;;
-        --no-nixos)    DO_NIXOS=0 ;;
+        --nixos)       DO_NIXOS=1 ;;
         -h|--help)     usage ;;
         *) warn "Opção desconhecida: $1" ;;
     esac

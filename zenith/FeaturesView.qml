@@ -21,6 +21,14 @@ FocusScope {
 
     readonly property var allFeatures: [
         {
+            id: "emulator",
+            name: (view.sys && view.sys.isPt) ? "Emulador Retro (GBA · DS · 3DS)" : "Retro Emulator (GBA · DS · 3DS)",
+            desc: (view.sys && view.sys.isPt) ? "Jogue GBA e DS direto na pílula ou 3DS com GPU (Azahar/melonDS/mGBA)" : "Play GBA & DS in-island or 3DS with GPU (Azahar/melonDS/mGBA)",
+            glyph: "󰺵",
+            shortcut: "SUPER + ALT + G",
+            keys: "emulator emulador retro gba nds ds 3ds nintendo mgba melonds azahar citra roms jogos games pokemon"
+        },
+        {
             id: "docker",
             name: "Docker Manager",
             desc: (view.sys && view.sys.isPt) ? "Containers, imagens e logs do Docker" : "Docker containers, images and logs",

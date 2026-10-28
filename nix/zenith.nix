@@ -13,35 +13,35 @@ let
       cp -r * $out/share/sddm/themes/zenith/
     '';
   };
-
-  zenith-grub-theme = pkgs.stdenvNoCC.mkDerivation {
-    pname = "zenith-grub-theme";
-    version = "1.0.0";
-    src = ./zenith/grub/zenith;
-    dontBuild = true;
-    installPhase = ''
-      mkdir -p $out
-      cp -r * $out/
-    '';
-  };
 in
 {
-  # Ensure runtime directory for wallpaper sync and SDDM bridge
+  # SDDM Display Manager with Zenith Island Theme
+  services.displayManager = {
+    defaultSession = lib.mkDefault "hyprland";
+    sddm = {
+      enable = lib.mkDefault true;
+      # X11 greeter: stable with NVIDIA. Override with `wayland.enable = true` if desired.
+      wayland.enable = lib.mkDefault false;
+      theme = "zenith";
+      extraPackages = [
+        zenith-sddm-theme
+        pkgs.qt6.qtdeclarative
+        pkgs.qt6.qtsvg
+        pkgs.qt6.qtmultimedia
+        pkgs.qt6.qt5compat
+      ];
+    };
+  };
+
+  environment.systemPackages = [
+    zenith-sddm-theme
+  ];
+
+  # Shared runtime state for the SDDM greeter bridge
   systemd.tmpfiles.rules = [
     "d /var/lib/zenith 0777 root root -"
   ];
 
-  # SDDM Theme definition and assets helper
-  # (Uncomment below to use Zenith theme for SDDM)
-  # services.displayManager.sddm = {
-  #   enable = true;
-  #   wayland.enable = true;
-  #   theme = "zenith";
-  #   extraPackages = [
-  #     zenith-sddm-theme
-  #     pkgs.qt6.qtdeclarative
-  #     pkgs.qt6.qtsvg
-  #     pkgs.qt6.qtmultimedia
-  #   ];
-  # };
+  # Auto-unlock GNOME Keyring on login via SDDM
+  security.pam.services.sddm.enableGnomeKeyring = lib.mkDefault true;
 }

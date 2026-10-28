@@ -548,6 +548,17 @@ else:
         return m.indexOf("image/") === 0 || m.indexOf("video/") === 0;
     }
 
+    function isRom(e) {
+        var n = String(e.eName || "").toLowerCase();
+        var dot = n.lastIndexOf(".");
+        if (dot < 0) return false;
+        var ext = n.slice(dot);
+        return ext === ".gba" || ext === ".gb" || ext === ".gbc"
+            || ext === ".nds" || ext === ".srl" || ext === ".dsi"
+            || ext === ".3ds" || ext === ".3dsx" || ext === ".cci"
+            || ext === ".cxi" || ext === ".cia";
+    }
+
     function activate(i) {
         if (i < 0 || i >= entries.count) return;
         var e = entries.get(i);
@@ -560,6 +571,7 @@ else:
             if (m.indexOf("image/") === 0) { view.sys.finishWallpaperPick(full); return; }
         }
         if (view.isMedia(e)) { view.sys.openMedia(full); return; }
+        if (view.isRom(e)) { view.sys.openRom(full); return; }
         // the rest - first we ask what to open
         view.openWithFile = full;
         apps.clear();

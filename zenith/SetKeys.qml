@@ -422,6 +422,7 @@ ColumnLayout {
 
             Head { text: "Recursos & Zenith" }
             BindRow { bindId: "pillFeatures";  label: "Recursos & Ferramentas" }
+            BindRow { bindId: "pillEmulator";  label: (page.sys && page.sys.isPt) ? "Emulador Retro (GBA/DS/3DS)" : "Retro Emulator (GBA/DS/3DS)" }
             BindRow { bindId: "pillDocker";    label: "Docker" }
             BindRow { bindId: "pillCalc";      label: "Calculadora" }
             BindRow { bindId: "pillTerminals"; label: (page.sys && page.sys.isPt) ? "Terminais em Segundo Plano" : "Background Terminals" }

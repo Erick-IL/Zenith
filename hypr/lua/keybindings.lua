@@ -22,6 +22,7 @@ local QS = "qs -c " .. os.getenv("HOME") .. "/.config/zenith ipc call pill "
 
 -- ---------------------------------------------------------------- pill
 B("pillFeatures", mainMod .. " + F1",         hl.dsp.exec_cmd(QS .. "features"))
+B("pillEmulator", mainMod .. " + ALT + G",    hl.dsp.exec_cmd(QS .. "emulator"))
 B("pillDocker",   mainMod .. " + D",          hl.dsp.exec_cmd(QS .. "docker"))
 B("pillCalc",     mainMod .. " + C",          hl.dsp.exec_cmd(QS .. "calc"))
 B("pillTerminals",mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd(QS .. "terminals"))

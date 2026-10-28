@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Panacea Equalizer Service
+Zenith Equalizer Service
 Manages an 8-band graphic equalizer using PipeWire's builtin biquad filters.
 Provides instantaneous real-time gain adjustments via pw-cli SPA props.
 """
@@ -97,8 +97,8 @@ def generate_conf(gains):
     {{ name = libpipewire-module-adapter }}
     {{ name = libpipewire-module-filter-chain
         args = {{
-            node.description = "Panacea Equalizer"
-            media.name       = "Panacea Equalizer"
+            node.description = "Zenith Equalizer"
+            media.name       = "Zenith Equalizer"
             filter.graph = {{
                 nodes = [
 {nodes_str}
@@ -110,12 +110,12 @@ def generate_conf(gains):
             audio.channels = 2
             audio.position = [ FL FR ]
             capture.props = {{
-                node.name        = "effect_input.panacea_eq"
-                node.description = "Panacea Equalizer"
+                node.name        = "effect_input.zenith_eq"
+                node.description = "Zenith Equalizer"
                 media.class      = Audio/Sink
             }}
             playback.props = {{
-                node.name        = "effect_output.panacea_eq"
+                node.name        = "effect_output.zenith_eq"
                 node.passive     = true
             }}
         }}
@@ -150,7 +150,7 @@ def get_default_hw_sink():
                 if m:
                     nid = m.group(1)
                     name = m.group(2).strip()
-                    if "panacea_eq" not in name.lower() and "equalizer" not in name.lower():
+                    if "zenith_eq" not in name.lower() and "equalizer" not in name.lower():
                         if "*" in line:
                             def_sink = nid
                         if not first_sink:
@@ -163,7 +163,7 @@ def find_eq_node():
         nodes = json.loads(out)
         for n in nodes:
             props = n.get("info", {}).get("props", {})
-            if props.get("node.name") == "effect_input.panacea_eq":
+            if props.get("node.name") == "effect_input.zenith_eq":
                 return str(n.get("id"))
     except Exception:
         pass
@@ -184,15 +184,15 @@ def is_running():
         return False
 
 def link_active_streams():
-    """Ensure active audio playback applications are connected to Panacea Equalizer"""
+    """Ensure active audio playback applications are connected to Zenith Equalizer"""
     try:
         out = subprocess.check_output(["pw-link", "-o"], text=True, timeout=1.0)
         for line in out.splitlines():
             line = line.strip()
-            if ":output_FL" in line and "panacea_eq" not in line and "alsa" not in line and "cava" not in line:
+            if ":output_FL" in line and "zenith_eq" not in line and "alsa" not in line and "cava" not in line:
                 app_prefix = line.split(":output_FL")[0]
-                subprocess.run(["pw-link", f"{app_prefix}:output_FL", "effect_input.panacea_eq:playback_FL"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
-                subprocess.run(["pw-link", f"{app_prefix}:output_FR", "effect_input.panacea_eq:playback_FR"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
+                subprocess.run(["pw-link", f"{app_prefix}:output_FL", "effect_input.zenith_eq:playback_FL"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
+                subprocess.run(["pw-link", f"{app_prefix}:output_FR", "effect_input.zenith_eq:playback_FR"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
     except Exception:
         pass
 

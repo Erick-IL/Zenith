@@ -17,13 +17,13 @@ set -u
 # Test run: put it in your directory and DO NOT restart the shell.
 # Without this, the installer would kill the working shell of the system on which
 # there is a check going on, and that’s exactly what happened one day.
-DRY="${PANACEA_DRYRUN:-0}"
+DRY="${ZENITH_DRYRUN:-0}"
 
-REPO="${PANACEA_REPO:-EnsixD/Zenith}"
-BRANCH="${PANACEA_BRANCH:-main}"
+REPO="${ZENITH_REPO:-EnsixD/Zenith}"
+BRANCH="${ZENITH_BRANCH:-main}"
 # Where to pull from. By default GitHub; a variable can be substituted with a local
 # path - the entire chain is checked on it, without touching the working system.
-GIT_URL="${PANACEA_GIT:-https://github.com/$REPO.git}"
+GIT_URL="${ZENITH_GIT:-https://github.com/$REPO.git}"
 # The local path has no history API, everything is taken there by git itself
 IS_GITHUB=0
 case "$GIT_URL" in https://github.com/*) IS_GITHUB=1 ;; esac
@@ -360,9 +360,9 @@ cmd_apply() {
     # The clone could come from a previous copy of the script - when self-updating it
     # I've already downloaded everything. We check that this is really our directory and not
     # left over from someone else's launch: without install.sh there is nothing further to do.
-    if [ -n "${PANACEA_SRC:-}" ] && [ -f "$PANACEA_SRC/install.sh" ]; then
+    if [ -n "${ZENITH_SRC:-}" ] && [ -f "$ZENITH_SRC/install.sh" ]; then
         rm -rf "$tmp"
-        tmp="$(dirname "$PANACEA_SRC")"
+        tmp="$(dirname "$ZENITH_SRC")"
         trap 'rm -rf "${tmp:-}"' EXIT
     else
         echo "step=download"
@@ -381,7 +381,7 @@ cmd_apply() {
     # times, and until then it would have been repaired manually. Therefore, if in a fresh clone
     # the script is different, we transfer the work to him - once, according to the flag, so as not
     # loop.
-    if [ "${PANACEA_SELFEXEC:-0}" != "1" ] && [ -f "$0" ] \
+    if [ "${ZENITH_SELFEXEC:-0}" != "1" ] && [ -f "$0" ] \
        && [ -f "$tmp/src/zenith/scripts/update.sh" ] \
        && ! cmp -s "$tmp/src/zenith/scripts/update.sh" "$0"; then
         echo "step=selfupdate"
@@ -392,7 +392,7 @@ cmd_apply() {
         # second time. Cloning is the longest update step, and when changing
         # update.sh itself it went twice in a row, doubling the wait on the flat
         # place. The catalog is taken away by the person who finished it.
-        PANACEA_SRC="$tmp/src" PANACEA_SELFEXEC=1 bash "$fresh" apply
+        ZENITH_SRC="$tmp/src" ZENITH_SELFEXEC=1 bash "$fresh" apply
         rc=$?
         rm -f "$fresh"
         rm -rf "$tmp"

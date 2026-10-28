@@ -46,6 +46,6 @@ printf 'input {\n    kb_layout = "%s"\n    kb_variant = "%s"\n    kb_model = "%s
 mv -f "$lua_tmp" "$lua_out"
 mv -f "$conf_tmp" "$conf_out"
 
-if [ "${PANACEA_DRYRUN:-0}" != "1" ] && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+if [ "${ZENITH_DRYRUN:-0}" != "1" ] && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
     hyprctl reload >/dev/null 2>&1 || true
 fi

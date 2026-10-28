@@ -1,11 +1,11 @@
-# The GRUB theme "Zenith" is the same language as the dynamic island:
-# Fav theme wallpaper, highlight capsule on the selected item, nothing extra.
+# Тема GRUB «Zenith» — тот же язык, что у динамического острова:
+# обои темы Fav, капсула-подсветка на выбранном пункте, ничего лишнего.
 #
-# Font names are written exactly as they are inside .pf2, and not as
-# they were called during assembly: grub-mkfont adds a style to the family, and from
-# "Zenith Regular" becomes "Zenith Regular Regular". Didn't match at least
-# letter - GRUB silently does not find the font and draws a simple menu instead of the theme, without
-# single error message. Check the name inside the file:
+# Имена шрифтов пишутся ровно так, как они лежат внутри .pf2, а не так, как
+# их звали при сборке: grub-mkfont дописывает к семейству начертание, и из
+# «Zenith Regular» получается «Zenith Regular Regular». Не совпало хоть на
+# букву — GRUB молча не находит шрифт и рисует простое меню вместо темы, без
+# единого сообщения об ошибке. Проверить имя внутри файла:
 #   strings zenith18.pf2 | head -3
 
 desktop-image: "background.png"
@@ -13,10 +13,10 @@ desktop-color: "#050506"
 
 title-text: ""
 
-# Console box (C key) and bootloader service messages. Stands below and
-# low: in it GRUB prints “Loading Linux...” before transferring
-# kernel control, and before it looked like a black window in the middle of the screen -
-# the box occupied the center and was almost opaque.
+# Коробка консоли (клавиша C) и служебных сообщений загрузчика. Стоит внизу и
+# невысокая: в ней же GRUB печатает «Loading Linux…» перед передачей
+# управления ядру, и раньше это выглядело как чёрное окно посреди экрана —
+# коробка занимала центр и была почти непрозрачной.
 terminal-font: "Zenith Regular Regular 18"
 terminal-box: "menu_*.png"
 terminal-left: "12%"
@@ -28,7 +28,7 @@ message-font: "Zenith Regular Regular 18"
 message-color: "#f2f2f2"
 message-bg-color: "#050506"
 
-# ------------------------------------------------------------------ hat
+# ------------------------------------------------------------------ шапка
 + label {
     left = 0
     top = 16%
@@ -44,12 +44,12 @@ message-bg-color: "#050506"
     top = 16%+34
     width = 100%
     align = "center"
-    text = "Select system"
+    text = "выберите систему"
     font = "Zenith Small Regular 14"
     color = "#7a7a7a"
 }
 
-# -------------------------------------------------------------- the menu itself
+# -------------------------------------------------------------- само меню
 + boot_menu {
     left = 50%-260
     width = 520
@@ -61,10 +61,10 @@ message-bg-color: "#050506"
     selected_item_font = "Zenith Regular Regular 18"
     selected_item_color = "#ffffff"
 
-    # GRUB draws highlight AROUND the line: padding is added to its height
-    # frames equal to the corner image (12 px top and bottom). Therefore the gap
-    # between points we keep more than the sum of these indents - 28 versus 24 - and
-    # the capsule is guaranteed to remain in its line.
+    # GRUB рисует подсветку ВОКРУГ строки: к её высоте добавляются отступы
+    # рамки, равные угловой картинке (12 px сверху и снизу). Поэтому зазор
+    # между пунктами держим больше суммы этих отступов — 28 против 24, — и
+    # капсула гарантированно остаётся в своей строке.
     item_height = 40
     item_spacing = 28
     item_padding = 16
@@ -77,7 +77,7 @@ message-bg-color: "#050506"
     scrollbar = false
 }
 
-# ------------------------------------------------- countdown bar
+# ------------------------------------------------- полоса обратного отсчёта
 + progress_bar {
     id = "__timeout__"
     left = 50%-180
@@ -102,13 +102,13 @@ message-bg-color: "#050506"
     color = "#6e6e6e"
 }
 
-# ------------------------------------------------------- key hint
+# ------------------------------------------------------- подсказка по клавишам
 + label {
     left = 0
     top = 100%-42
     width = 100%
     align = "center"
-    text = "Arrows - select     Enter - boot     E - edit     C - console"
+    text = "Стрелки - выбор     Enter - запуск     E - правка     C - консоль"
     font = "Zenith Small Regular 14"
     color = "#5a5a5a"
 }

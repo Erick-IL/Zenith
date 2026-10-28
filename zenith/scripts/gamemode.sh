@@ -29,7 +29,7 @@
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/zenith"
 STATE_FILE="$STATE_DIR/gaming-mode"
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SHELL_CMD="qs -p $HOME/.config/zenith ipc call pill"
+SHELL_CMD="qs -c $HOME/.config/zenith ipc call pill"
 
 send_notif() {
     local title="$1"

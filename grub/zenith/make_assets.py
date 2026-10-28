@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate images for the GRUB theme \"Zenith\".
+"""Генерация картинок для темы GRUB «Zenith».
 
-Background — wallpaper of Fav theme. Bootloader cannot read
-Hyprland config, so image is placed next to theme and dimmed/vignetted
-here so that menu text remains readable.
+Фон — обои темы Fav (тёмный монохромный кадр с цветком). Загрузчик читать
+конфиг Hyprland не может, поэтому картинку кладём рядом с темой и только
+затемняем/виньетируем здесь, чтобы текст меню читался.
 
     python3 make_assets.py [ширина] [высота] [путь_к_обоям]
 """
@@ -20,7 +20,7 @@ WALL = sys.argv[3] if len(sys.argv) > 3 else os.path.join(HERE, "wallpaper.jpg")
 
 
 def cover(img, w, h):
-    """Scale \"cover\": fill w×h without borders, crop center."""
+    """Масштаб «cover»: заполнить w×h без полей, лишнее обрезать по центру."""
     iw, ih = img.size
     scale = max(w / iw, h / ih)
     nw, nh = int(iw * scale + 0.5), int(ih * scale + 0.5)
@@ -34,13 +34,13 @@ def build_background():
     base = Image.open(WALL).convert("RGB")
     img = cover(base, W, H)
 
-    # The wallpaper is already dark - dim it a little more so that the menu text is white
-    # confidently read over any part of them.
+    # Обои и так тёмные — приглушаем ещё немного, чтобы белый текст меню
+    # уверенно читался поверх любой их части.
     img = ImageEnhance.Brightness(img).enhance(0.62)
     img = ImageEnhance.Contrast(img).enhance(0.96)
 
-    # Soft vignette: draws attention to the center, where the menu is, and draws attention
-    # edges in black - there the tips are typed in muted gray.
+    # Мягкая виньетка: собирает внимание к центру, где стоит меню, и топит
+    # края в чёрный — там подсказки набраны приглушённым серым.
     vign = Image.new("L", (W, H), 0)
     vd = ImageDraw.Draw(vign)
     maxd = math.hypot(W / 2, H / 2)
@@ -53,8 +53,8 @@ def build_background():
     vign = vign.filter(ImageFilter.GaussianBlur(40))
     img = Image.composite(Image.new("RGB", (W, H), (3, 3, 4)), img, vign)
 
-    # Light horizontal “background” under the menu column: smooth, dark
-    # a stripe in the center so that the lines do not drown in the light bokeh spots.
+    # Лёгкая горизонтальная «подложка» под колонкой меню: ровная тёмная
+    # полоса по центру, чтобы строки не тонули в светлых пятнах боке.
     band = Image.new("L", (W, H), 0)
     bd = ImageDraw.Draw(band)
     bx0, bx1 = int(W * 0.30), int(W * 0.70)
@@ -76,7 +76,7 @@ def rounded(size, radius, fill, border, width=1):
 
 
 def slice9(img, name, corner):
-    """Slice image into 9 parts for GRUB styled box."""
+    """Режем картинку на 9 частей для styled box GRUB."""
     w, h = img.size
     parts = {
         "nw": (0, 0, corner, corner),
@@ -94,20 +94,20 @@ def slice9(img, name, corner):
 
 
 def build_boxes():
-    # The highlighted item is a dark capsule with a glass outline.
+    # Выделенный пункт — тёмная капсула со стеклянной обводкой.
     #
-    # The angle specifies both the radius of the capsule and the frame margin that GRUB adds
-    # to the line above and below. In theme.txt the gap between items (28) is larger
-    # double angle (24), so the backlight does not interfere with its neighbors.
+    # Угол задаёт и радиус капсулы, и отступ рамки, который GRUB добавляет
+    # к строке сверху и снизу. В theme.txt зазор между пунктами (28) больше
+    # двойного угла (24), поэтому подсветка не налезает на соседей.
     corner = 12
     side = corner * 2 + 6
     sel = rounded((side, side), corner,
                   (10, 10, 12, 235), (255, 255, 255, 60))
     slice9(sel, "select", corner)
 
-    # Console and bootloader message box: much more transparent than before. In it
-    # GRUB prints "Loading Linux..." before starting the kernel, and is opaque
-    # the fill read like a black window popping up in the middle of the screen.
+    # Коробка консоли и сообщений загрузчика: сильно прозрачнее прежней. В ней
+    # GRUB печатает «Loading Linux…» перед стартом ядра, и непрозрачная
+    # заливка читалась как чёрное окно, выскочившее посреди экрана.
     box = 14
     menu = rounded((box * 2 + 6, box * 2 + 6), box,
                    (8, 8, 10, 110), (255, 255, 255, 20))
@@ -117,4 +117,4 @@ def build_boxes():
 if __name__ == "__main__":
     build_background()
     build_boxes()
-    print("done")
+    print("готово")

@@ -63,6 +63,13 @@ FocusScope {
     // in English, and by the names of the agents themselves, so that “claude” also leads
     // here.
     readonly property var builtins: [{
+        builtin: "emulator",
+        id: "zenith:emulator",
+        glyph: "󰺵",
+        name: (view.sys && view.sys.isPt) ? "Emulador Retro (GBA · DS · 3DS)" : "Retro Emulator (GBA · DS · 3DS)",
+        genericName: (view.sys && view.sys.isPt) ? "Jogue GBA e DS na pílula ou 3DS com GPU" : "Play GBA & DS in-island or 3DS with GPU",
+        keys: "emulator emulador retro gba nds ds 3ds nintendo mgba melonds azahar citra roms jogos games pokemon"
+    }, {
         builtin: "agents",
         // The key for the recent list is specified explicitly and in English: it is also the name of the string
         // in the file, and the name is translated. Through the interface language “Agents” and “Agents”
@@ -235,6 +242,7 @@ FocusScope {
         // islands. But it gets into the recent ones on a par with applications: it was opened
         // from the same list and with the same Enter, and next time she should
         // wait from above, and not in your place according to the alphabet.
+        if (app.builtin === "emulator") { rememberApp(app); sys.togglePage("emulator"); return; }
         if (app.builtin === "agents") { rememberApp(app); sys.openAgents(); return; }
         // We DO NOT record the system as recent. Recent is “what I use”
         // and rebooting to another system happens once a week and after that

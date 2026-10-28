@@ -51,9 +51,9 @@ ShellRoot {
     readonly property var cfg: cfgFile.adapter
 
     // Emergency unlock for debugging: only enabled when
-    // who started the process with PANACEA_LOCK_TEST=1. In combat launch
+    // who started the process with ZENITH_LOCK_TEST=1. In combat launch
     // there is no such channel.
-    readonly property bool testMode: Quickshell.env("PANACEA_LOCK_TEST") === "1"
+    readonly property bool testMode: Quickshell.env("ZENITH_LOCK_TEST") === "1"
 
     // ------------------------------------------------- wallpaper and accent from the theme
     property string wallpaper: ""
@@ -119,7 +119,7 @@ ShellRoot {
         } catch (e) { /* there are no settings - we remain in English and the default theme */ }
 
         // scripts/lock.sh gives a copy of the wallpaper already compressed under the screen
-        var cached = Quickshell.env("PANACEA_LOCK_BG") || "";
+        var cached = Quickshell.env("ZENITH_LOCK_BG") || "";
         if (cached.length) { root.wallpaper = cached; }
 
         var w = /^\$wallpaper\s*=\s*(.+)$/m.exec(wallFile.text() || "");

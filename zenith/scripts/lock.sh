@@ -2,7 +2,7 @@
 # Launching the lock screen (lock.qml).
 #
 # The background is also prepared here: the theme’s wallpaper, compressed under the screen and cached.
-# QML itself reads the path from PANACEA_LOCK_BG.
+# QML itself reads the path from ZENITH_LOCK_BG.
 
 DIR="$(dirname "$(readlink -f "$0")")"
 QML="$DIR/../lock.qml"
@@ -29,9 +29,9 @@ wallpaper="${wallpaper/#\~/$HOME}"
 
 if [ -n "$wallpaper" ] && [ "$wallpaper" != "black" ] && [ -f "$wallpaper" ]; then
     bg=$("$DIR/thumbs.sh" lockbg "$wallpaper" 2>/dev/null)
-    [ -n "$bg" ] && export PANACEA_LOCK_BG="$bg"
+    [ -n "$bg" ] && export ZENITH_LOCK_BG="$bg"
 fi
-step "background ready: ${PANACEA_LOCK_BG:-none}"
+step "background ready: ${ZENITH_LOCK_BG:-none}"
 command -v quickshell >/dev/null 2>&1 || step "quickshell not found in PATH"
 
 # The same threaded cycle as the pill: with the NVIDIA Qt driver it chooses

@@ -115,7 +115,7 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 if [ "$DO_BACKUP" = "1" ]; then
     step "Criando backup das configurações atuais..."
     mkdir -p "$CONF"
-    for d in zenith hypr foot fish fastfetch; do
+    for d in zenith hypr foot fish fastfetch nano; do
         if [ -e "$CONF/$d" ] && [ ! -L "$CONF/$d" ]; then
             cp -r "$CONF/$d" "$CONF/${d}.bak-${STAMP}"
             ok "Backup: ~/.config/${d}.bak-${STAMP}"
@@ -129,6 +129,16 @@ fi
 step "Instalando configurações do Zenith..."
 mkdir -p "$CONF" "$BIN_DIR" "$APPS_DIR"
 
+# Files generated/owned by the user at runtime - never overwritten in copy mode
+STATE_EXCLUDES=(
+    --exclude='__pycache__' --exclude='*.pyc' --exclude='.version' --exclude='.vibrance'
+    --exclude='.whatsnew' --exclude='*.pid' --exclude='*_state.json' --exclude='last_wifi_ssid'
+    --exclude='eq_prev_sink.txt' --exclude='/settings.json' --exclude='*_data.lua'
+    --exclude='/wallpaper/custom' --exclude='/wallpaper.conf' --exclude='/palette.conf'
+    --exclude='/monitors.conf' --exclude='/input_data.conf' --exclude='/custom/'
+    --exclude='/custom.fish' --exclude='/custom.ini' --exclude='/custom.jsonc'
+)
+
 install_dir() {
     local src_dir="$1"
     local dst_dir="$2"
@@ -140,12 +150,28 @@ install_dir() {
         rm -rf "$dst_dir"
         ln -sfn "$src_dir" "$dst_dir"
         ok "Link: ~/.config/$name → $src_dir"
+    elif command -v rsync >/dev/null 2>&1; then
+        [ -L "$dst_dir" ] && rm -f "$dst_dir"
+        mkdir -p "$dst_dir"
+        # Seed user-owned files only when missing, then sync the rest
+        rsync -a --ignore-existing "$src_dir/" "$dst_dir/"
+        rsync -a --delete "${STATE_EXCLUDES[@]}" "$src_dir/" "$dst_dir/"
+        ok "Sincronizado: ~/.config/$name (configurações do usuário preservadas)"
     else
-        rm -rf "$dst_dir"
-        cp -r "$src_dir" "$dst_dir"
+        [ -L "$dst_dir" ] && rm -f "$dst_dir"
+        mkdir -p "$dst_dir"
+        cp -rn "$src_dir/." "$dst_dir/"
+        (cd "$src_dir" && find . -type f ! -name settings.json ! -name '*_data.lua' ! -name 'custom*' -exec cp --parents -f {} "$dst_dir/" \;)
         ok "Copiado: ~/.config/$name"
     fi
 }
+
+# Migração: instalação antiga "panacea" -> "zenith" (preserva configurações do usuário)
+if [ "$DO_LINK" = "0" ] && [ -d "$CONF/panacea" ] && [ ! -L "$CONF/panacea" ] && [ ! -e "$CONF/zenith" ]; then
+    mkdir -p "$CONF/zenith"
+    cp "$CONF/panacea/settings.json" "$CONF/zenith/" 2>/dev/null || true
+    ok "Migrado settings.json de ~/.config/panacea"
+fi
 
 install_dir "$SRC/zenith"    "$CONF/zenith"    "zenith"
 install_dir "$SRC/hypr"      "$CONF/hypr"      "hypr"

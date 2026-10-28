@@ -53,7 +53,7 @@ ColumnLayout {
             text: page.sys.sysLangPending
                   ? ((page.sys && page.sys.isPt) ? "Alterando idioma do sistema…" : page.sys.tr("Меняем язык системы…"))
                   : (!page.sys.systemLocaleMatches
-                     ? ((page.sys && page.sys.isPt) ? "A interface da Zenith já está no novo idioma. Aplicativos externos aplicarão após novo login." : page.sys.tr("Оболочка уже на новом языке. Приложения и меню читают язык при входе — они переключатся после перезахода."))
+                     ? ((page.sys && page.sys.isPt) ? "A interface da Panacea já está no novo idioma. Aplicativos externos aplicarão após novo login." : page.sys.tr("Оболочка уже на новом языке. Приложения и меню читают язык при входе — они переключатся после перезахода."))
                      : ((page.sys && page.sys.isPt) ? "A interface atualiza instantaneamente. Aplicativos externos requerem novo login para ler as variáveis de ambiente." : page.sys.tr("Оболочка переключается сразу. Приложения и меню — после перезахода: язык они читают при входе.")))
             color: page.sys.colMuted
             wrapMode: Text.WordWrap
@@ -440,10 +440,96 @@ ColumnLayout {
             label: (page.sys && page.sys.isPt) ? "Barra de progresso" : page.sys.tr("Шкала прогресса")
             options: [
                 { id: "day", text: (page.sys && page.sys.isPt) ? "Progresso do dia (24 horas)" : page.sys.tr("Прогресс дня (24 часа)") },
-                { id: "year", text: (page.sys && page.sys.isPt) ? "Progresso do ano (365 dias)" : page.sys.tr("Прогресс года (365 дней)") }
+                { id: "year", text: (page.sys && page.sys.isPt) ? "Progresso do ano (365 dias)" : page.sys.tr("Прогресс года (365 дней)") },
+                { id: "target", text: (page.sys && page.sys.isPt) ? "Data específica / Meta" : page.sys.tr("Конкретная дата / Цель") }
             ]
             value: page.sys.cfg.widgetProgressMode || "day"
             onPicked: id => { page.sys.cfg.widgetProgressMode = id; page.sys.saveCfg(); }
+        }
+
+        // Configuração de Data Alvo / Meta
+        ColumnLayout {
+            visible: page.sys.cfg.featWidgets && page.sys.cfg.widgetProgressMode === "target"
+            Layout.fillWidth: true
+            spacing: 8
+            Layout.topMargin: 4
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    Text {
+                        text: (page.sys && page.sys.isPt) ? "Título da Meta:" : "Target Label:"
+                        color: page.sys.colMuted
+                        font { family: page.sys.fontBody; pixelSize: page.sys.fontSize - 3 }
+                    }
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 32
+                        radius: 8
+                        color: Qt.rgba(page.sys.colFg.r, page.sys.colFg.g, page.sys.colFg.b, 0.07)
+                        TextInput {
+                            id: tLabelInput
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            verticalAlignment: Text.AlignVCenter
+                            color: page.sys.colFg
+                            selectByMouse: true
+                            text: page.sys.cfg.widgetTargetLabel || ""
+                            font { family: page.sys.fontBody; pixelSize: page.sys.fontSize - 2 }
+                            onEditingFinished: {
+                                page.sys.cfg.widgetTargetLabel = text.trim();
+                                page.sys.saveCfg();
+                            }
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    Text {
+                        text: (page.sys && page.sys.isPt) ? "Data Alvo (AAAA-MM-DD):" : "Target Date (YYYY-MM-DD):"
+                        color: page.sys.colMuted
+                        font { family: page.sys.fontBody; pixelSize: page.sys.fontSize - 3 }
+                    }
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 32
+                        radius: 8
+                        color: Qt.rgba(page.sys.colFg.r, page.sys.colFg.g, page.sys.colFg.b, 0.07)
+                        TextInput {
+                            id: tDateInput
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            verticalAlignment: Text.AlignVCenter
+                            color: page.sys.colFg
+                            selectByMouse: true
+                            text: page.sys.cfg.widgetTargetDate || ""
+                            font { family: page.sys.fontBody; pixelSize: page.sys.fontSize - 2 }
+                            onEditingFinished: {
+                                page.sys.cfg.widgetTargetDate = text.trim();
+                                page.sys.saveCfg();
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: (page.sys && page.sys.isPt)
+                      ? "Exemplo: 2026-12-31 para contagem até o Réveillon ou data de formatura, viagem ou entrega."
+                      : page.sys.tr("Пример: 2026-12-31 для отсчёта до цели или важной даты.")
+                color: page.sys.colMuted
+                wrapMode: Text.WordWrap
+                font { family: page.sys.fontBody; pixelSize: page.sys.fontSize - 4 }
+            }
         }
 
         Text {

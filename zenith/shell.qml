@@ -30,11 +30,11 @@ PanelWindow {
     id: root
 
     // ------------------------------------------------- saved settings
-    // They live in ~/.config/zenith/settings.json and are edited using Super+I.
+    // They live in ~/.config/panacea/settings.json and are edited using Super+I.
     // The file is read at start and re-read when external changes occur.
     FileView {
         id: cfgFile
-        path: Quickshell.env("HOME") + "/.config/zenith/settings.json"
+        path: Quickshell.env("HOME") + "/.config/panacea/settings.json"
         watchChanges: true
         onFileChanged: reload()
         adapter: JsonAdapter {
@@ -55,8 +55,8 @@ PanelWindow {
             property bool   pillOverlay: true
             // Остров виден при раскрытии (панель открывается отдельной плавающей карточкой)
             property bool   pillKeepVisible: false
-            // Закрывать оверлей Zenith по Super+Q (иначе убивать фоновое окно)
-            property bool   closeZenithFirst: true
+            // Закрывать оверлей Panacea по Super+Q (иначе убивать фоновое окно)
+            property bool   closePanaceaFirst: true
 
             // Monitor settings from the Display tab, JSON view
             // {"eDP-1":{w,h,rr,scale,transform,vrr,pos}}. Hyprland doesn't have them
@@ -215,6 +215,10 @@ PanelWindow {
             property string widgetClockMode: "analog"
             property string widgetRightMode: "weather"
             property string widgetProgressMode: "day"
+            property string widgetTargetDate: ""
+            property string widgetTargetLabel: "Meta"
+            property string widgetTargetStart: ""
+            property string primaryMonitor: ""
             // JSON string: {"Turkish":"TR","Russian":"RU"}
             property string keyboardLayoutMap: ""
 
@@ -420,7 +424,7 @@ PanelWindow {
         colFg: "#ffffff", colOn: "#ffffff", mutedAlpha: 0.45, themeId: "nothing",
         spacingUnit: 8, smallRadius: 10,
         pillH: 38, pillPos: "top", pillScreen: "auto", pillAutoHide: false, pillOverlay: true,
-        pillKeepVisible: false, closeZenithFirst: true,
+        pillKeepVisible: false, closePanaceaFirst: true,
         pillDrag: false, panelW: 540,
         monOverrides: "",
         notchMode: true, notchFlare: 12, collapsedW: 260, expandedH: 620,
@@ -439,6 +443,8 @@ PanelWindow {
         weatherOnIsland: false, systemLoadOnIsland: true, keyboardLayoutMap: "", featWidgets: false,
         calNotify: true, calNotifyMinutes: 15, calNotifySound: true,
         widgetClockMode: "analog", widgetRightMode: "weather", widgetProgressMode: "day",
+        widgetTargetDate: "", widgetTargetLabel: "Meta", widgetTargetStart: "",
+        primaryMonitor: "",
         termAlpha: 0.90,
         uiSounds: true
     })
@@ -448,7 +454,7 @@ PanelWindow {
 
     function playSound(name) {
         if (root.cfg.uiSounds === false) return;
-        var p = Quickshell.env("HOME") + "/.config/zenith/sounds/" + name + ".wav";
+        var p = Quickshell.env("HOME") + "/.config/panacea/sounds/" + name + ".wav";
         pSound.command = ["sh", "-c", "command -v pw-play >/dev/null 2>&1 && pw-play --volume 1.0 \"$1\" >/dev/null 2>&1 || (command -v paplay >/dev/null 2>&1 && paplay \"$1\" >/dev/null 2>&1)", "_", p];
         pSound.running = false;
         pSound.running = true;
@@ -471,11 +477,20 @@ PanelWindow {
 
     function monCmd(n, o) {
         var mode = o.w + "x" + o.h + "@" + Number(o.rr).toFixed(2);
+        if (o.mirror && o.mirror.length > 0 && o.mirror !== "none") {
+            var luaMirror = "hl.monitor({ output=\"" + n + "\", mode=\"" + mode
+                    + "\", position=\"" + (o.pos || "auto") + "\", scale=" + Number(o.scale || 1).toFixed(6)
+                    + ", mirror=\"" + o.mirror + "\" })";
+            var legacyMirror = n + "," + mode + "," + (o.pos || "auto") + "," + Number(o.scale || 1).toFixed(6)
+                       + ",mirror," + o.mirror;
+            return "out=$(hyprctl eval '" + luaMirror + "' 2>&1); case \"$out\" in ok*) ;; *) "
+                 + "hyprctl keyword monitor '" + legacyMirror + "' ;; esac";
+        }
         var lua = "hl.monitor({ output=\"" + n + "\", mode=\"" + mode
-                + "\", position=\"" + o.pos + "\", scale=" + Number(o.scale).toFixed(6)
-                + ", transform=" + o.transform + ", vrr=" + (o.vrr ? 1 : 0) + " })";
-        var legacy = n + "," + mode + "," + o.pos + "," + Number(o.scale).toFixed(6)
-                   + ",transform," + o.transform + ",vrr," + (o.vrr ? 1 : 0);
+                + "\", position=\"" + (o.pos || "auto") + "\", scale=" + Number(o.scale || 1).toFixed(6)
+                + ", transform=" + (o.transform || 0) + ", vrr=" + (o.vrr ? 1 : 0) + " })";
+        var legacy = n + "," + mode + "," + (o.pos || "auto") + "," + Number(o.scale || 1).toFixed(6)
+                   + ",transform," + (o.transform || 0) + ",vrr," + (o.vrr ? 1 : 0);
         return "out=$(hyprctl eval '" + lua + "' 2>&1); case \"$out\" in ok*) ;; *) "
              + "hyprctl keyword monitor '" + legacy + "' ;; esac";
     }
@@ -506,7 +521,7 @@ PanelWindow {
         interval: 400
         onTriggered: {
             pGenMon.command = ["sh", "-c",
-                Quickshell.env("HOME") + "/.config/zenith/scripts/genmonitors.sh"];
+                Quickshell.env("HOME") + "/.config/panacea/scripts/genmonitors.sh"];
             pGenMon.running = false;
             pGenMon.running = true;
         }
@@ -538,7 +553,7 @@ PanelWindow {
         interval: 160
         onTriggered: {
             pVibrance.command = ["sh", "-c",
-                Quickshell.env("HOME") + "/.config/zenith/scripts/vibrance.sh set "
+                Quickshell.env("HOME") + "/.config/panacea/scripts/vibrance.sh set "
                 + root.cfg.vibrance];
             pVibrance.running = false;
             pVibrance.running = true;
@@ -698,7 +713,7 @@ PanelWindow {
     Process {
         id: pGreeterLocale
         command: ["sh", "-c",
-            "d=/var/lib/zenith; [ -w \"$d\" ] || exit 0; " +
+            "d=/var/lib/panacea; [ -w \"$d\" ] || exit 0; " +
             "printf 'import QtQuick 2.15\\nQtObject { property string lang: \"%s\" }\\n' " +
             "\"$1\" > \"$d/locale.qml\" && chmod 644 \"$d/locale.qml\"",
             "_", root.cfg.lang]
@@ -715,7 +730,7 @@ PanelWindow {
     Process {
         id: pGreeterTheme
         command: ["sh", "-c",
-            "d=/var/lib/zenith; [ -w \"$d\" ] || exit 0; " +
+            "d=/var/lib/panacea; [ -w \"$d\" ] || exit 0; " +
             "printf 'import QtQuick 2.15\\nQtObject {\\n" +
             "  property color value: \"%s\"\\n" +
             "  property color fg: \"%s\"\\n" +
@@ -741,7 +756,7 @@ PanelWindow {
         command: ["sh", "-c",
             "d=\"$HOME/.config/hypr/lua\"; mkdir -p \"$d\" || exit 0; " +
             "printf 'return { opacity = %s }\\n' \"$1\" > \"$d/term_data.lua\"; " +
-            "hyprctl eval \"hl.window_rule({ name = 'zenith-term-opacity', " +
+            "hyprctl eval \"hl.window_rule({ name = 'panacea-term-opacity', " +
             "match = { class = '^(footclient|foot)$' }, opacity = $1 })\" >/dev/null 2>&1",
             "_", root.cfg.termAlpha.toFixed(2)]
     }
@@ -828,7 +843,7 @@ PanelWindow {
     Process {
         id: pTermTheme
         command: ["sh", "-c",
-            "f=\"$HOME/.config/foot/zenith-theme\"; mkdir -p \"$(dirname \"$f\")\" || exit 0; " +
+            "f=\"$HOME/.config/foot/panacea-theme\"; mkdir -p \"$(dirname \"$f\")\" || exit 0; " +
             "if [ -n \"$1\" ]; then " +
             "printf '[colors-dark]\\nbackground=%s\\n' \"$1\" > \"$f\"; " +
             "else : > \"$f\"; fi",
@@ -869,7 +884,7 @@ PanelWindow {
     Process {
         id: pLocaleGet
         running: true
-        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/zenith/scripts/locale.sh get"]
+        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/panacea/scripts/locale.sh get"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var s = text.trim().split("\n").pop().trim();
@@ -894,7 +909,7 @@ PanelWindow {
         root.saveCfg();
 
         root.sysLangPending = true;
-        pLocaleSet.command = ["pkexec", Quickshell.env("HOME") + "/.config/zenith/scripts/locale.sh", "set", code];
+        pLocaleSet.command = ["pkexec", Quickshell.env("HOME") + "/.config/panacea/scripts/locale.sh", "set", code];
         pLocaleSet.running = false;
         pLocaleSet.running = true;
     }
@@ -1000,7 +1015,7 @@ PanelWindow {
     readonly property string version: "1.0.11"
 
     // ------------------------------------------------------------ update
-    // The installed version is marked by the installer (~/.config/zenith/.version),
+    // The installed version is marked by the installer (~/.config/panacea/.version),
     // and update.sh checks it against the end of the branch on GitHub. The commit hash changes from
     // any edits - both from new files, and from changes in old ones, and from deletions,
     // therefore, one comparison is enough to catch everything at once.
@@ -1209,9 +1224,9 @@ PanelWindow {
     property int updNotifId: -1
     Process {
         id: pUpdNotify
-        command: ["notify-send", "-p", "-a", "Zenith", "-i",
-                  Quickshell.env("HOME") + "/.config/zenith/assets/logo-128.png",
-                  root.tr("Доступно обновление Zenith"), root.updSubject]
+        command: ["notify-send", "-p", "-a", "Panacea", "-i",
+                  Quickshell.env("HOME") + "/.config/panacea/assets/logo-128.png",
+                  root.tr("Доступно обновление Panacea"), root.updSubject]
         stdout: StdioCollector {
             onStreamFinished: root.updNotifId = parseInt(String(text).trim()) || -1
         }
@@ -1225,7 +1240,7 @@ PanelWindow {
 
     FileView {
         id: whatsNewFile
-        path: Quickshell.env("HOME") + "/.config/zenith/.whatsnew"
+        path: Quickshell.env("HOME") + "/.config/panacea/.whatsnew"
         watchChanges: true
         // The file is almost always not there, and this is not an error: it only appears
         // after the update. Without this, the log would become clogged every time it was launched.
@@ -1269,7 +1284,7 @@ PanelWindow {
 
     FileView {
         id: missingDepsFile
-        path: Quickshell.env("HOME") + "/.config/zenith/.missingdeps"
+        path: Quickshell.env("HOME") + "/.config/panacea/.missingdeps"
         watchChanges: true
         printErrors: false
         onFileChanged: reload()
@@ -1282,7 +1297,7 @@ PanelWindow {
     property string obsoleteDeps: ""
     FileView {
         id: obsoleteDepsFile
-        path: Quickshell.env("HOME") + "/.config/zenith/.obsoletedeps"
+        path: Quickshell.env("HOME") + "/.config/panacea/.obsoletedeps"
         watchChanges: true
         printErrors: false
         onFileChanged: reload()
@@ -1300,7 +1315,7 @@ PanelWindow {
         id: pWhatsNewClear
         command: ["sh", "-c",
                   "rm -f \"$1/.whatsnew\" \"$1/.missingdeps\" \"$1/.obsoletedeps\"", "_",
-                  Quickshell.env("HOME") + "/.config/zenith"]
+                  Quickshell.env("HOME") + "/.config/panacea"]
     }
 
     // The first check is not at the start: when you log in, the network still rises,
@@ -1309,7 +1324,7 @@ PanelWindow {
     Timer { interval: 6 * 3600 * 1000; running: true; repeat: true; onTriggered: root.checkUpdate() }
 
     readonly property string scriptDir:
-        Quickshell.env("HOME") + "/.config/zenith/scripts"
+        Quickshell.env("HOME") + "/.config/panacea/scripts"
 
     // capture.sh off calls this IPC so that the panel removes capture mode
     signal cancelCaptureRequested()
@@ -1341,7 +1356,7 @@ PanelWindow {
         root.bindsPending = false;
         bindsFallback.stop();
         pGenBinds.command = ["sh", "-c",
-            Quickshell.env("HOME") + "/.config/zenith/scripts/genbinds.sh"];
+            Quickshell.env("HOME") + "/.config/panacea/scripts/genbinds.sh"];
         pGenBinds.running = true;
     }
     // insurance if for some reason there is no signal about the recording
@@ -1358,7 +1373,7 @@ PanelWindow {
         running: true
         command: ["sh", "-c",
             "[ -f \"$HOME/.config/hypr/lua/binds_data.lua\" ] "
-            + "|| \"$HOME/.config/zenith/scripts/genbinds.sh\""]
+            + "|| \"$HOME/.config/panacea/scripts/genbinds.sh\""]
     }
     Connections {
         target: cfgFile
@@ -1616,11 +1631,24 @@ PanelWindow {
         onTriggered: pFullscreen.running = true
     }
 
+    property string lastFocusedMonitorName: ""
+    property int activeMonRevision: 0
+
     Connections {
         target: Hyprland
         enabled: !Compositor.isNiri
         function onRawEvent(event) {
             var n = String(event.name);
+            if (n === "focusedmon") {
+                if (event.data) {
+                    var monPart = String(event.data).split(",")[0].trim();
+                    if (monPart.length > 0) root.lastFocusedMonitorName = monPart;
+                }
+                root.activeMonRevision++;
+            } else if (n === "workspace" || n === "monitoradded" || n === "monitorremoved") {
+                root.activeMonRevision++;
+            }
+
             if (n === "fullscreen" || n === "activewindow" || n === "activewindowv2"
                 || n === "closewindow" || n === "openwindow" || n === "workspace"
                 || n === "focusedmon")
@@ -1640,7 +1668,7 @@ PanelWindow {
             root.monReplay();
             root.applyInput();
             pVibrance.command = ["sh", "-c",
-                Quickshell.env("HOME") + "/.config/zenith/scripts/vibrance.sh set "
+                Quickshell.env("HOME") + "/.config/panacea/scripts/vibrance.sh set "
                 + root.cfg.vibrance];
             pVibrance.running = false;
             pVibrance.running = true;
@@ -2047,7 +2075,7 @@ PanelWindow {
         // Use the icon to select the photo itself: the notification shows what exactly was taken,
         // and the miss in the frame can be seen without opening the file.
         var name = String(path).split("/").pop();
-        pShotSay.command = ["notify-send", "-a", "Zenith", "-i", String(path),
+        pShotSay.command = ["notify-send", "-a", "Panacea", "-i", String(path),
                             "-h", "int:transient:1",
                             root.tr("Скриншот"),
                             root.tr("В буфере обмена") + " · " + name];
@@ -2063,7 +2091,7 @@ PanelWindow {
         command: ["python3", "-c", `
 import json, os, time
 from datetime import datetime
-cfg_path = os.path.expanduser("~/.config/zenith/calendar_events.json")
+cfg_path = os.path.expanduser("~/.config/panacea/calendar_events.json")
 if not os.path.exists(cfg_path):
     print("[]")
     exit(0)
@@ -2106,7 +2134,7 @@ except Exception:
                                 var msg = ev.title + (ev.time ? " às " + ev.time : "");
                                 if (ev.diff > 0) msg += " (em " + ev.diff + " min)";
                                 pShotSay.command = [
-                                    "notify-send", "-a", "Zenith",
+                                    "notify-send", "-a", "Panacea",
                                     "-i", "appointment-soon",
                                     root.isPt ? "Lembrete de Evento" : "Event Reminder",
                                     msg
@@ -2300,7 +2328,7 @@ except Exception:
     Process {
         id: pMachine
         running: true
-        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/zenith/scripts/brightness.sh detect"]
+        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/panacea/scripts/brightness.sh detect"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var t = text.slice(text.lastIndexOf("backend="));
@@ -2530,7 +2558,7 @@ except Exception:
 
     Process {
         id: pLoad
-        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/zenith/scripts/sysload.sh" + ((root.expanded || root.cfg.systemLoadOnIsland || root.cfg.featWidgets) ? "" : " --fast")]
+        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/panacea/scripts/sysload.sh" + ((root.expanded || root.cfg.systemLoadOnIsland || root.cfg.featWidgets) ? "" : " --fast")]
         stdout: StdioCollector {
             onStreamFinished: {
                 // The collector accumulates the output of all runs in a row, so we take
@@ -2577,7 +2605,7 @@ except Exception:
 
     Process {
         id: pBrightList
-        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/zenith/scripts/brightness.sh list"]
+        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/panacea/scripts/brightness.sh list"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var out = [];
@@ -2598,7 +2626,7 @@ except Exception:
         if (root.brightBackend === "none") return;
         root.brightBusy = true;
         pBrightList.command = ["sh", "-c",
-            Quickshell.env("HOME") + "/.config/zenith/scripts/brightness.sh "
+            Quickshell.env("HOME") + "/.config/panacea/scripts/brightness.sh "
             + (rescan ? "rescan" : "list")];
         pBrightList.running = false;
         pBrightList.running = true;
@@ -2624,7 +2652,7 @@ except Exception:
         onTriggered: {
             if (root.brightPendingPct < 0) return;
             pBrightSet.command = ["sh", "-c",
-                Quickshell.env("HOME") + "/.config/zenith/scripts/brightness.sh set "
+                Quickshell.env("HOME") + "/.config/panacea/scripts/brightness.sh set "
                 + root.brightPendingId + " " + root.brightPendingPct];
             pBrightSet.running = false;
             pBrightSet.running = true;
@@ -2705,7 +2733,7 @@ except Exception:
     Process {
         running: root.keepAwake
         command: ["systemd-inhibit", "--what=idle:sleep:handle-lid-switch",
-                  "--who=Zenith", "--why=Keep awake", "sleep", "infinity"]
+                  "--who=Panacea", "--why=Keep awake", "sleep", "infinity"]
     }
 
     // ------------------------------------------------------- sound: devices
@@ -2755,7 +2783,7 @@ except Exception:
     Process {
         running: true
         command: ["sh", "-c", Quickshell.env("HOME")
-                  + "/.config/zenith/scripts/thumbs.sh all"]
+                  + "/.config/panacea/scripts/thumbs.sh all"]
     }
 
     // ------------------------------------------------------------ system tray
@@ -2905,7 +2933,7 @@ except Exception:
 
             var app = String(n.appName || "");
             var sum = String(n.summary || "");
-            var isTransient = (app === "Zenith"
+            var isTransient = (app === "Panacea"
                                || sum === root.tr("Скриншот")
                                || sum === "Скриншот"
                                || sum === "Screenshot"
@@ -3047,7 +3075,7 @@ except Exception:
     }
 
     // ------------------------------------------------------- password manager
-    // The entries are located in ~/.local/share/zenith/vault.enc, encrypted with a password
+    // The entries are located in ~/.local/share/panacea/vault.enc, encrypted with a password
     // user. The pill keeps the decrypted list and the password itself in memory,
     // while the storage is open, and forgets everything after 15 minutes without asking.
     property bool   vaultUnlocked: false
@@ -3144,7 +3172,7 @@ except Exception:
     }
     function vaultLoad() {
         pVaultLoad.command = ["sh", "-c",
-            Quickshell.env("HOME") + "/.config/zenith/scripts/vault.sh load"];
+            Quickshell.env("HOME") + "/.config/panacea/scripts/vault.sh load"];
         pVaultLoad.running = true;
         pVaultLoad.write(root.vaultKey + "\n");
         pVaultLoad.stdinEnabled = false;
@@ -3188,13 +3216,13 @@ except Exception:
         root.vaultDirty = false;
         pVaultSave.stdinEnabled = true;
         pVaultSave.command = ["sh", "-c",
-            Quickshell.env("HOME") + "/.config/zenith/scripts/vault.sh save"];
+            Quickshell.env("HOME") + "/.config/panacea/scripts/vault.sh save"];
         pVaultSave.running = true;
         pVaultSave.write(root.vaultKey + "\n" + JSON.stringify(root.vaultEntries));
         pVaultSave.stdinEnabled = false;
     }
 
-    function vaultAdd(label, login, pw) {
+    function vaultAdd(label, login, pw, totp) {
         if (!root.vaultUnlocked) return;
         var a = root.vaultEntries.slice();
         a.unshift({
@@ -3202,17 +3230,19 @@ except Exception:
             label: String(label || root.tr("Без названия")),
             login: String(login || ""),
             pw: String(pw || ""),
+            totp: String(totp || ""),
             at: Qt.formatDateTime(new Date(), "dd.MM.yyyy HH:mm")
         });
         root.vaultEntries = a;
         vaultSave();
     }
-    function vaultUpdate(id, label, login, pw) {
+    function vaultUpdate(id, label, login, pw, totp) {
         var a = root.vaultEntries.slice();
         for (var i = 0; i < a.length; i++) {
             if (a[i].id !== id) continue;
+            var curTotp = (totp !== undefined) ? String(totp) : (a[i].totp || "");
             a[i] = { id: id, label: String(label), login: String(login),
-                     pw: String(pw), at: a[i].at };
+                     pw: String(pw), totp: curTotp, at: a[i].at };
             break;
         }
         root.vaultEntries = a;
@@ -3447,7 +3477,7 @@ except Exception:
 
     // ------------------------------------------------------- power profile
     readonly property string powerScript:
-        Quickshell.env("HOME") + "/.config/zenith/scripts/power.sh"
+        Quickshell.env("HOME") + "/.config/panacea/scripts/power.sh"
 
     // "power-saver" | "balanced" | "performance"
     property string powerProfile: "balanced"
@@ -3617,7 +3647,7 @@ except Exception:
     }
 
     // ------------------------------------------------------------------ Wi-Fi
-    readonly property string wifiScript: Quickshell.env("HOME") + "/.config/zenith/scripts/wifi.sh"
+    readonly property string wifiScript: Quickshell.env("HOME") + "/.config/panacea/scripts/wifi.sh"
 
     property bool wifiOn: true
     property string wifiSsid: ""
@@ -4278,7 +4308,7 @@ except Exception:
     Process { id: pBtUnblock; command: ["rfkill", "unblock", "bluetooth"] }
     Process { id: pBtHelper; command: ["sh", "-c", ""] }
     function runBtCmd(args) {
-        pBtHelper.command = ["sh", "-c", Quickshell.env("HOME") + "/.config/zenith/scripts/bluetooth.sh " + args];
+        pBtHelper.command = ["sh", "-c", Quickshell.env("HOME") + "/.config/panacea/scripts/bluetooth.sh " + args];
         pBtHelper.running = true;
     }
     function toggleBt() {
@@ -4366,7 +4396,7 @@ except Exception:
         function weather(): void { root.togglePage("weather"); }
         function weatherClose(): void { if (root.page === "weather") root.collapse(); }
         function smartClose(): string {
-            if (!root.cfg.closeZenithFirst) return "disabled";
+            if (!root.cfg.closePanaceaFirst) return "disabled";
             var anyOpen = root.expanded || root.overviewOpen || root.wallsOpen || root.keysWindowOpen || root.whatsNewOpen || root.weatherDetailsOpen;
             if (anyOpen) {
                 if (root.weatherDetailsOpen) root.weatherDetailsOpen = false;
@@ -4456,18 +4486,59 @@ except Exception:
     screen: root.pickScreen
 
     readonly property var pickScreen: {
-        var want = root.cfg.pillScreen;
-        if (want && want !== "auto") {
-            var all = Quickshell.screens;
-            for (var i = 0; i < all.length; i++)
+        root.activeMonRevision;
+        var all = Quickshell.screens;
+        if (!all || all.length === 0) return null;
+
+        var want = root.cfg.pillScreen || "auto";
+
+        // 1. Tela específica escolhida pelo usuário
+        if (want !== "auto" && want !== "primary") {
+            for (var i = 0; i < all.length; i++) {
                 if (all[i].name === want) return all[i];
+            }
         }
+
+        // 2. Sempre na tela principal
+        if (want === "primary" && root.cfg.primaryMonitor) {
+            for (var p = 0; p < all.length; p++) {
+                if (all[p].name === root.cfg.primaryMonitor) return all[p];
+            }
+        }
+
+        // 3. Modo automático (acompanha o foco)
+        var monName = "";
         if (Compositor.isNiri) {
             var nm = Compositor.focusedMonitor;
-            return (nm && nm.screen) ? nm.screen : null;
+            if (nm && nm.name) monName = nm.name;
+        } else {
+            if (root.lastFocusedMonitorName) monName = root.lastFocusedMonitorName;
+            else if (Compositor.focusedMonitor && Compositor.focusedMonitor.name) monName = Compositor.focusedMonitor.name;
+            else if (Hyprland.focusedMonitor && Hyprland.focusedMonitor.name) monName = Hyprland.focusedMonitor.name;
         }
-        var fm = Hyprland.focusedMonitor;
-        return (fm && fm.screen) ? fm.screen : null;
+
+        // Se monName é uma tela configurada como espelho (mirror) de outra tela, SEMPRE ancorar na tela de origem!
+        // Telas espelhadas não possuem buffer independente e a pill sumiria ou duplicaria.
+        if (monName) {
+            var mOverrides = root.monMap();
+            if (mOverrides && mOverrides[monName] && mOverrides[monName].mirror) {
+                monName = mOverrides[monName].mirror;
+            }
+        }
+
+        if (monName) {
+            for (var j = 0; j < all.length; j++) {
+                if (all[j].name === monName) return all[j];
+            }
+        }
+
+        // 4. Fallback 100% seguro: tela principal ou primeira tela conectada (NUNCA retorna null)
+        if (root.cfg.primaryMonitor) {
+            for (var k = 0; k < all.length; k++) {
+                if (all[k].name === root.cfg.primaryMonitor) return all[k];
+            }
+        }
+        return all[0];
     }
 
     // We press against three edges: the one towards which remains free
@@ -4789,7 +4860,7 @@ except Exception:
         // The expanded panel is no higher than expandedH: pages can be long, but
         // their height is limited by their own scrolling, and not by the island.
         readonly property real targetH: root.expanded
-                ? Math.min(contentH, root.settingsMode ? (root.height - 48) : Math.min(root.height - 48, Math.max(root.cfg.expandedH, 700)))
+                ? Math.min(contentH, (root.settingsMode || root.page === "vault" || root.page === "tasks" || root.page === "files") ? (root.height - 48) : Math.min(root.height - 48, Math.max(root.cfg.expandedH, 700)))
                 : root.pillSide ? idleLen
                                 : idleThick
         // No higher than the screen: Side edges have a vertical page layout
@@ -4949,7 +5020,7 @@ except Exception:
                 if (!root.hoverExpandArmed) return;
                 // While the notification is on, hovering does not open the panel:
                 // otherwise you won't get to the cross
-                if (root.toastActive || root.btToastActive || root.acToastActive || root.recPickActive || root.voxActive) return;
+                if (root.toastActive || root.btToastActive || root.wifiToastActive || root.acToastActive || root.recPickActive || root.voxActive) return;
                 // When auto-hide by hovering, the island is only shown. He and
                 // comes out from behind the edge under this very cursor, so
                 // opening next would mean: I wanted to see the time -
@@ -5132,7 +5203,7 @@ except Exception:
                 // The icon is slightly to the left: increase the gap to the text (capsule
                 // is centered, so the icon moves to the left edge).
                 Layout.rightMargin: 8
-                source: Quickshell.env("HOME") + "/.config/zenith/assets/earbuds.svg"
+                source: Quickshell.env("HOME") + "/.config/panacea/assets/earbuds.svg"
                 sourceSize.width: 44
                 sourceSize.height: 44
                 fillMode: Image.PreserveAspectFit
@@ -5737,7 +5808,7 @@ except Exception:
             spacing: 14
             // On the Nothing theme, the collapsed island is arranged differently - it is collected
             // nothingCapsule, and this layout entirely gives way to it.
-            visible: !root.themeNothing && !root.expanded && !root.osdActive && !root.toastActive && !root.btToastActive && !root.acToastActive && !root.recPickActive && !root.voxActive
+            visible: !root.themeNothing && !root.expanded && !root.osdActive && !root.toastActive && !root.btToastActive && !root.wifiToastActive && !root.acToastActive && !root.recPickActive && !root.voxActive
             // Transparency, not visible: the hidden layout has an implicitWidth
             // equal to zero, and the island would calculate its length by emptiness.
             opacity: root.pillSide ? 0 : (visible ? 1 : 0)
@@ -6665,9 +6736,9 @@ except Exception:
             // the panel collapses, and its contents are otherwise visible for a couple more frames
             // behind the card, the screens “flashed.”
             active: (root.expanded || capsule.height > root.pillH + 4)
-                    && !root.recPickActive && !root.btToastActive
+                    && !root.recPickActive && !root.btToastActive && !root.wifiToastActive
                     && !root.acToastActive && !root.voxActive
-            visible: !root.recPickActive && !root.btToastActive && !root.acToastActive && !root.voxActive
+            visible: !root.recPickActive && !root.btToastActive && !root.wifiToastActive && !root.acToastActive && !root.voxActive
             // without this, the keyboard did not reach the page content:
             // Loader itself did not have focus, and forceActiveFocus() inside the view
             // didn't lead to anything
@@ -7003,7 +7074,7 @@ Instantiator {
 
     FloatingWindow {
         required property var model
-        title: "Zenith · " + root.tr("Проводник")
+        title: "Panacea · " + root.tr("Проводник")
         color: root.colBg
         minimumSize.width: 720
         minimumSize.height: 460

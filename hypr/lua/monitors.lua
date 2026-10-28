@@ -1,7 +1,7 @@
 -- Screens.
 --
 -- The remembered settings come here from settings.json via
--- zenith/scripts/genmonitors.sh - in the same way as keyboard shortcuts.
+-- panacea/scripts/genmonitors.sh - in the same way as keyboard shortcuts.
 -- There is no file (first installation, someone else’s machine) - “preferred” remains, and that’s it
 -- works as before.
 --
@@ -15,14 +15,18 @@ local ok, saved = pcall(require, "lua.monitors_data")
 if not ok or type(saved) ~= "table" then saved = {} end
 
 for _, m in ipairs(saved) do
-    hl.monitor({
+    local entry = {
         output    = m.output,
         mode      = m.mode,
         position  = m.position or "auto",
         scale     = m.scale or 1.0,
         transform = m.transform or 0,
         vrr       = m.vrr or 0,
-    })
+    }
+    if m.mirror and m.mirror ~= "" and m.mirror ~= "none" then
+        entry.mirror = m.mirror
+    end
+    hl.monitor(entry)
 end
 
 -- Everything else that is connected: resolution according to the panel’s preference.

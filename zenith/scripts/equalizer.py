@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Zenith Equalizer Service
+Panacea Equalizer Service
 Manages an 8-band graphic equalizer using PipeWire's builtin biquad filters.
 Provides instantaneous real-time gain adjustments via pw-cli SPA props.
 """
@@ -17,6 +17,7 @@ CONFIG_DIR = os.path.expanduser("~/.config/zenith")
 CONF_PATH = os.path.join(CONFIG_DIR, "eq.conf")
 PID_PATH = os.path.join(CONFIG_DIR, "eq.pid")
 PREV_SINK_PATH = os.path.join(CONFIG_DIR, "eq_prev_sink.txt")
+STATE_PATH = os.path.join(CONFIG_DIR, "eq_state.json")
 
 FREQS = [60.0, 150.0, 400.0, 1000.0, 2400.0, 6000.0, 12000.0, 16000.0]
 PRESETS = {
@@ -29,6 +30,34 @@ PRESETS = {
     "Electronic": [6.0, 5.0, 2.0, 0.0, 1.0, 3.0, 5.0, 6.0],
     "Acoustic": [3.0, 2.0, 1.0, 2.0, 3.0, 3.0, 2.0, 1.0]
 }
+
+def find_matching_preset(gains):
+    for pname, pvals in PRESETS.items():
+        if all(abs(float(g) - float(pv)) < 0.05 for g, pv in zip(gains, pvals)):
+            return pname
+    return "Custom"
+
+def get_state():
+    state = {}
+    if os.path.exists(STATE_PATH):
+        try:
+            with open(STATE_PATH, "r") as f:
+                state = json.load(f)
+        except Exception:
+            pass
+    if not state.get("gains") and os.path.exists(CONF_PATH):
+        try:
+            with open(CONF_PATH, "r") as f:
+                content = f.read()
+            gains = []
+            for m in re.finditer(r'"Gain"\s*=\s*([-+]?\d*\.?\d+)', content):
+                gains.append(float(m.group(1)))
+            if len(gains) == 8:
+                state["gains"] = gains
+                state["preset"] = find_matching_preset(gains)
+        except Exception:
+            pass
+    return state
 
 def clean_gain_values(gains):
     clean = []
@@ -68,8 +97,8 @@ def generate_conf(gains):
     {{ name = libpipewire-module-adapter }}
     {{ name = libpipewire-module-filter-chain
         args = {{
-            node.description = "Zenith Equalizer"
-            media.name       = "Zenith Equalizer"
+            node.description = "Panacea Equalizer"
+            media.name       = "Panacea Equalizer"
             filter.graph = {{
                 nodes = [
 {nodes_str}
@@ -81,12 +110,12 @@ def generate_conf(gains):
             audio.channels = 2
             audio.position = [ FL FR ]
             capture.props = {{
-                node.name        = "effect_input.zenith_eq"
-                node.description = "Zenith Equalizer"
+                node.name        = "effect_input.panacea_eq"
+                node.description = "Panacea Equalizer"
                 media.class      = Audio/Sink
             }}
             playback.props = {{
-                node.name        = "effect_output.zenith_eq"
+                node.name        = "effect_output.panacea_eq"
                 node.passive     = true
             }}
         }}
@@ -121,7 +150,7 @@ def get_default_hw_sink():
                 if m:
                     nid = m.group(1)
                     name = m.group(2).strip()
-                    if "zenith_eq" not in name.lower() and "equalizer" not in name.lower():
+                    if "panacea_eq" not in name.lower() and "equalizer" not in name.lower():
                         if "*" in line:
                             def_sink = nid
                         if not first_sink:
@@ -134,7 +163,7 @@ def find_eq_node():
         nodes = json.loads(out)
         for n in nodes:
             props = n.get("info", {}).get("props", {})
-            if props.get("node.name") == "effect_input.zenith_eq":
+            if props.get("node.name") == "effect_input.panacea_eq":
                 return str(n.get("id"))
     except Exception:
         pass
@@ -155,15 +184,15 @@ def is_running():
         return False
 
 def link_active_streams():
-    """Ensure active audio playback applications are connected to Zenith Equalizer"""
+    """Ensure active audio playback applications are connected to Panacea Equalizer"""
     try:
         out = subprocess.check_output(["pw-link", "-o"], text=True, timeout=1.0)
         for line in out.splitlines():
             line = line.strip()
-            if ":output_FL" in line and "zenith_eq" not in line and "alsa" not in line and "cava" not in line:
+            if ":output_FL" in line and "panacea_eq" not in line and "alsa" not in line and "cava" not in line:
                 app_prefix = line.split(":output_FL")[0]
-                subprocess.run(["pw-link", f"{app_prefix}:output_FL", "effect_input.zenith_eq:playback_FL"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
-                subprocess.run(["pw-link", f"{app_prefix}:output_FR", "effect_input.zenith_eq:playback_FR"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
+                subprocess.run(["pw-link", f"{app_prefix}:output_FL", "effect_input.panacea_eq:playback_FL"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
+                subprocess.run(["pw-link", f"{app_prefix}:output_FR", "effect_input.panacea_eq:playback_FR"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
     except Exception:
         pass
 
@@ -198,9 +227,21 @@ def stop_eq():
 
     print(json.dumps({"status": "stopped"}))
 
-def apply_eq(gains):
+def apply_eq(gains, preset="Custom"):
     os.makedirs(CONFIG_DIR, exist_ok=True)
     clean_gains = clean_gain_values(gains)
+
+    # Determine preset if Custom
+    actual_preset = preset
+    if actual_preset == "Custom" or not actual_preset:
+        actual_preset = find_matching_preset(clean_gains)
+
+    # Save state to eq_state.json
+    try:
+        with open(STATE_PATH, "w") as f:
+            json.dump({"gains": clean_gains, "preset": actual_preset}, f)
+    except OSError:
+        pass
 
     # Save previous hardware sink before activating equalizer
     if not os.path.exists(PREV_SINK_PATH):
@@ -235,7 +276,7 @@ def apply_eq(gains):
             # Ensure it is default sink
             subprocess.run(["wpctl", "set-default", str(eq_node_id)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=0.5)
             link_active_streams()
-            print(json.dumps({"status": "applied", "runtime": True, "pid": pid, "node": eq_node_id}))
+            print(json.dumps({"status": "applied", "runtime": True, "pid": pid, "node": eq_node_id, "preset": actual_preset}))
             return
         except Exception:
             pass # Fall back to full launch if pw-cli failed
@@ -273,11 +314,11 @@ def apply_eq(gains):
             pass
         link_active_streams()
 
-    print(json.dumps({"status": "applied", "runtime": False, "pid": proc.pid, "node": eq_node_id}))
+    print(json.dumps({"status": "applied", "runtime": False, "pid": proc.pid, "node": eq_node_id, "preset": actual_preset}))
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: equalizer.py apply '<json_gains>' | stop | status | presets")
+        print("Usage: equalizer.py apply '<json_gains>' [preset] | stop | status | presets")
         sys.exit(1)
 
     cmd = sys.argv[1]
@@ -286,17 +327,29 @@ def main():
     elif cmd == "status":
         pid = is_running()
         node = find_eq_node() if pid else None
-        print(json.dumps({"running": bool(pid and node), "pid": pid if pid else None, "node": node}))
+        running = bool(pid and node)
+        state = get_state()
+        res = {
+            "running": running,
+            "pid": pid if pid else None,
+            "node": node,
+            "gains": state.get("gains", [0.0] * 8),
+            "preset": state.get("preset", "Flat")
+        }
+        print(json.dumps(res))
     elif cmd == "presets":
         print(json.dumps(PRESETS))
     elif cmd == "apply":
         gains = [0.0] * 8
+        preset = "Custom"
         if len(sys.argv) > 2:
             try:
                 gains = json.loads(sys.argv[2])
             except Exception:
                 pass
-        apply_eq(gains)
+        if len(sys.argv) > 3:
+            preset = sys.argv[3]
+        apply_eq(gains, preset)
     else:
         print(f"Unknown command: {cmd}")
         sys.exit(1)

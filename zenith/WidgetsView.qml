@@ -100,6 +100,64 @@ Item {
     readonly property int remainYearDays: Math.max(0, Math.ceil((endOfYear - view.now) / 86400000))
     readonly property string remainYearText: remainYearDays + (isPt ? " dias" : " days")
 
+    // Progresso para data específica / meta (3º modo)
+    readonly property string targetDateStr: (view.sys && view.sys.cfg && view.sys.cfg.widgetTargetDate) ? String(view.sys.cfg.widgetTargetDate).trim() : ""
+    readonly property string targetLabelStr: (view.sys && view.sys.cfg && view.sys.cfg.widgetTargetLabel) ? String(view.sys.cfg.widgetTargetLabel).trim() : (isPt ? "Meta" : "Target")
+    readonly property string targetStartStr: (view.sys && view.sys.cfg && view.sys.cfg.widgetTargetStart) ? String(view.sys.cfg.widgetTargetStart).trim() : ""
+
+    readonly property var targetObj: {
+        var tDate;
+        if (view.targetDateStr.length >= 8) {
+            var parts = view.targetDateStr.split("-");
+            var ty = parseInt(parts[0], 10);
+            var tm = parts.length > 1 ? parseInt(parts[1], 10) - 1 : 0;
+            var td = parts.length > 2 ? parseInt(parts[2], 10) : 1;
+            tDate = new Date(ty, tm, td, 0, 0, 0);
+        } else {
+            tDate = endOfYear;
+        }
+
+        var sDate;
+        if (view.targetStartStr.length >= 8) {
+            var sp = view.targetStartStr.split("-");
+            var sy = parseInt(sp[0], 10);
+            var sm = sp.length > 1 ? parseInt(sp[1], 10) - 1 : 0;
+            var sd = sp.length > 2 ? parseInt(sp[2], 10) : 1;
+            sDate = new Date(sy, sm, sd, 0, 0, 0);
+        } else {
+            sDate = new Date(tDate.getFullYear(), 0, 1, 0, 0, 0);
+            if (sDate >= tDate) sDate = new Date(view.curYear, 0, 1, 0, 0, 0);
+        }
+
+        return {
+            target: tDate,
+            start: sDate,
+            valid: !isNaN(tDate.getTime())
+        };
+    }
+
+    readonly property int targetPct: {
+        if (!targetObj.valid) return 0;
+        var total = targetObj.target.getTime() - targetObj.start.getTime();
+        if (total <= 0) return (view.now >= targetObj.target) ? 100 : 0;
+        var elapsed = view.now.getTime() - targetObj.start.getTime();
+        return Math.max(0, Math.min(100, Math.round((elapsed / total) * 100)));
+    }
+
+    readonly property int remainTargetDays: {
+        if (!targetObj.valid) return 0;
+        var diff = targetObj.target.getTime() - view.now.getTime();
+        return Math.ceil(diff / 86400000);
+    }
+
+    readonly property string remainTargetText: {
+        if (!targetObj.valid) return isPt ? "Data não definida" : "No date set";
+        if (remainTargetDays < 0) return isPt ? "Concluído!" : "Completed!";
+        if (remainTargetDays === 0) return isPt ? "Hoje!" : "Today!";
+        if (remainTargetDays === 1) return "1 " + (isPt ? "dia restante" : "day left");
+        return remainTargetDays + (isPt ? " dias restantes" : " days left");
+    }
+
     // Launcher de atalhos em segundo plano
     Process { id: pQuick }
     function launch(cmd) {
@@ -1071,12 +1129,14 @@ Item {
                         Layout.fillWidth: true
                         text: view.progressMode === "day"
                               ? (view.isPt ? "PROGRESSO DO DIA" : "DAY PROGRESS")
-                              : (view.isPt ? "PROGRESSO DO ANO" : "YEAR PROGRESS")
+                              : (view.progressMode === "year"
+                                 ? (view.isPt ? "PROGRESSO DO ANO" : "YEAR PROGRESS")
+                                 : (view.targetLabelStr.toUpperCase() + (view.isPt ? " · META" : " · TARGET")))
                         color: view.sys ? view.sys.colMuted : "#888888"
                     }
 
                     Text {
-                        text: (view.progressMode === "day" ? view.dayPct : view.yearPct) + "%"
+                        text: (view.progressMode === "day" ? view.dayPct : (view.progressMode === "year" ? view.yearPct : view.targetPct)) + "%"
                         color: view.sys ? view.sys.colOn : "#ffffff"
                         font { family: view.sys ? view.sys.fontFam : "sans-serif"; pixelSize: 12; bold: true }
                     }
@@ -1130,6 +1190,32 @@ Item {
                     }
                 }
 
+                // Segmentos Gráficos para Data Específica / Meta (20 segmentos de 5%)
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 6
+                    spacing: 4
+                    visible: view.progressMode === "target"
+
+                    Repeater {
+                        model: 20
+                        Rectangle {
+                            required property int index
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 6
+                            radius: 3
+                            readonly property bool filled: (index + 1) * 5 <= view.targetPct
+                            readonly property bool current: index * 5 <= view.targetPct && view.targetPct < (index + 1) * 5
+                            color: filled
+                                   ? Qt.rgba(1, 1, 1, 0.85)
+                                   : (current
+                                      ? (view.sys ? view.sys.colOn : "#d71921")
+                                      : Qt.rgba(1, 1, 1, 0.10))
+                            opacity: current ? view.pulseOpacity : 1.0
+                        }
+                    }
+                }
+
                 // Rodapé informativo com tempo restante exato
                 RowLayout {
                     Layout.fillWidth: true
@@ -1137,13 +1223,13 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: (view.isPt ? "Restante: " : "Remaining: ") +
-                              (view.progressMode === "day" ? view.remainDayText : view.remainYearText)
+                              (view.progressMode === "day" ? view.remainDayText : (view.progressMode === "year" ? view.remainYearText : view.remainTargetText))
                         color: view.sys ? view.sys.colMuted : "#888888"
                         font { family: view.sys ? view.sys.fontFam : "sans-serif"; pixelSize: 10 }
                     }
 
                     Caption {
-                        text: "󰔛 " + (view.progressMode === "day" ? "24H" : "365D")
+                        text: "󰔛 " + (view.progressMode === "day" ? "24H" : (view.progressMode === "year" ? "365D" : (view.targetDateStr.length >= 5 ? view.targetDateStr.slice(5) : "ALVO")))
                         font.pixelSize: 8
                         color: view.sys ? Qt.rgba(view.sys.colFg.r, view.sys.colFg.g, view.sys.colFg.b, 0.45) : "#666666"
                     }
@@ -1157,7 +1243,9 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (view.sys && view.sys.cfg) {
-                        view.sys.cfg.widgetProgressMode = (view.progressMode === "day" ? "year" : "day");
+                        if (view.progressMode === "day") view.sys.cfg.widgetProgressMode = "year";
+                        else if (view.progressMode === "year") view.sys.cfg.widgetProgressMode = "target";
+                        else view.sys.cfg.widgetProgressMode = "day";
                         view.sys.saveCfg();
                     }
                 }

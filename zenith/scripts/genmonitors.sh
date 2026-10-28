@@ -17,7 +17,7 @@
 # monitors.lua reads it, but there is no file - “preferred” is taken.
 set -u
 
-CFG="$HOME/.config/zenith/settings.json"
+CFG="$HOME/.config/panacea/settings.json"
 OUT="$HOME/.config/hypr/lua/monitors_data.lua"
 
 [ -f "$CFG" ] || exit 1
@@ -31,7 +31,7 @@ mkdir -p "$(dirname "$OUT")"
 tmp="$OUT.new"
 
 {
-    echo "-- File is generated automatically: zenith/scripts/genmonitors.sh"
+    echo "-- File is generated automatically: panacea/scripts/genmonitors.sh"
     echo "-- Manual edits will be overwritten upon next display settings change."
     echo "return {"
     printf '%s' "$raw" | jq -r '
@@ -43,6 +43,7 @@ tmp="$OUT.new"
         + ", scale = " + ((.value.scale // 1) | tostring)
         + ", transform = " + ((.value.transform // 0) | tostring)
         + ", vrr = " + (if .value.vrr then "1" else "0" end)
+        + (if .value.mirror and .value.mirror != "" and .value.mirror != "none" then ", mirror = \"" + .value.mirror + "\"" else "" end)
         + " },"
     ' 2>/dev/null
     echo "}"

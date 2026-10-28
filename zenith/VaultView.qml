@@ -1,19 +1,20 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import Quickshell
+import Quickshell.Io
 
-// Password manager.
-//
-// Closed - only the password prompt is visible (the same one that sudo asks for).
-// Open - list of entries: where the password, login, “copy” button come from.
-// After 15 minutes without requests, the storage closes itself.
+// Password manager with 2FA / TOTP support.
 FocusScope {
     id: view
     property var sys
 
     implicitHeight: col.implicitHeight
 
-    Component.onCompleted: view.forceActiveFocus()
+    Component.onCompleted: {
+        view.forceActiveFocus();
+        if (view.sys.vaultUnlocked) view.refreshTotp();
+    }
     FocusGrabber { target: view.sys.vaultUnlocked ? search : pw }
 
     // any action extends the life of the open storage
@@ -30,14 +31,85 @@ FocusScope {
 
     property string editId: ""       // id of record in edit mode
     property string query: ""
+    property string currentTab: "all" // "all", "passwords", "2fa"
+    property var totpCodes: ({})
+
+    Process {
+        id: pTotpBatch
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    var parsed = JSON.parse(data.trim());
+                    if (parsed && typeof parsed === "object") {
+                        view.totpCodes = parsed;
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+
+    function refreshTotp() {
+        if (!view.sys.vaultUnlocked || !view.sys.vaultEntries) return;
+        var list = [];
+        for (var i = 0; i < view.sys.vaultEntries.length; i++) {
+            var e = view.sys.vaultEntries[i];
+            if (e && e.totp && String(e.totp).trim().length > 0) {
+                list.push({ id: String(e.id), totp: String(e.totp).trim() });
+            }
+        }
+        if (list.length === 0) {
+            view.totpCodes = ({});
+            return;
+        }
+        pTotpBatch.command = ["python3", Quickshell.env("HOME") + "/.config/panacea/scripts/vault_totp.py", "batch", JSON.stringify(list)];
+        pTotpBatch.running = true;
+    }
+
+    Timer {
+        id: totpTimer
+        interval: 1000
+        repeat: true
+        running: view.sys.vaultUnlocked
+        onTriggered: view.refreshTotp()
+    }
+
+    Connections {
+        target: view.sys
+        function onVaultEntriesChanged() { view.refreshTotp(); }
+        function onVaultUnlockedChanged() {
+            if (view.sys.vaultUnlocked) view.refreshTotp();
+        }
+    }
 
     readonly property var shown: {
         var q = view.query.trim().toLowerCase();
-        if (q.length === 0) return view.sys.vaultEntries;
-        return view.sys.vaultEntries.filter(function (e) {
+        var list = view.sys.vaultEntries || [];
+        if (view.currentTab === "2fa") {
+            list = list.filter(function (e) {
+                return e.totp && String(e.totp).trim().length > 0;
+            });
+        } else if (view.currentTab === "passwords") {
+            list = list.filter(function (e) {
+                return !e.totp || String(e.totp).trim().length === 0;
+            });
+        }
+        if (q.length === 0) return list;
+        return list.filter(function (e) {
             return String(e.label).toLowerCase().indexOf(q) >= 0
                 || String(e.login).toLowerCase().indexOf(q) >= 0;
         });
+    }
+
+    readonly property real estimatedListHeight: {
+        var h = 0;
+        var listData = view.shown || [];
+        for (var i = 0; i < listData.length; i++) {
+            var it = listData[i];
+            if (view.editId === it.id) h += 142;
+            else if (it.totp && String(it.totp).trim().length > 0) h += 102;
+            else h += 62;
+        }
+        return h;
     }
 
     // edit field: the same for name, login and password
@@ -207,6 +279,58 @@ FocusScope {
             font { family: view.sys.fontFam; pixelSize: view.sys.fontSize - 4 }
         }
 
+        // ---------------------------------------------------------- tabs (All, Passwords, 2FA)
+        RowLayout {
+            visible: view.sys.vaultUnlocked
+            Layout.fillWidth: true
+            spacing: 6
+
+            Repeater {
+                model: [
+                    { id: "all", label: (view.sys && view.sys.isPt) ? "Todos" : "Все", icon: "󰌋" },
+                    { id: "passwords", label: (view.sys && view.sys.isPt) ? "Senhas" : "Пароли", icon: "󰢬" },
+                    { id: "2fa", label: "2FA (TOTP)", icon: "󰒃" }
+                ]
+
+                Rectangle {
+                    required property var modelData
+                    Layout.preferredHeight: 28
+                    Layout.preferredWidth: tabTxt.implicitWidth + 24
+                    radius: 14
+                    readonly property bool active: view.currentTab === modelData.id
+                    color: active ? Qt.rgba(view.sys.colOn.r, view.sys.colOn.g, view.sys.colOn.b, 0.22)
+                                  : (tabMa.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.05))
+                    border.color: active ? view.sys.colOn : Qt.rgba(1, 1, 1, 0.1)
+                    border.width: 1
+
+                    RowLayout {
+                        id: tabTxt
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Text {
+                            text: modelData.icon
+                            color: active ? view.sys.colOn : view.sys.colMuted
+                            font { family: view.sys.fontFam; pixelSize: 11 }
+                        }
+                        Text {
+                            text: modelData.label
+                            color: active ? view.sys.colFg : view.sys.colMuted
+                            font { family: view.sys.fontFam; pixelSize: 11; bold: active }
+                        }
+                    }
+
+                    MouseArea {
+                        id: tabMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: view.currentTab = modelData.id
+                    }
+                }
+            }
+            Item { Layout.fillWidth: true }
+        }
+
         // ---------------------------------------------------------- search/+
         RowLayout {
             visible: view.sys.vaultUnlocked
@@ -294,7 +418,7 @@ FocusScope {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        view.sys.vaultAdd(view.sys.tr("Новая запись"), "", "");
+                        view.sys.vaultAdd((view.sys && view.sys.isPt) ? "Nova Senha" : view.sys.tr("Новая запись"), "", "", "");
                         view.editId = view.sys.vaultEntries.length
                                       ? view.sys.vaultEntries[0].id : "";
                     }
@@ -455,7 +579,9 @@ FocusScope {
             id: list
             visible: view.sys.vaultUnlocked
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.min(360, Math.max(0, view.shown.length * 62))
+            Layout.preferredHeight: view.shown.length > 0
+                ? Math.min(Math.max(540, (view.sys && view.sys.height ? view.sys.height - 240 : 680)), Math.max(160, view.estimatedListHeight))
+                : 0
             clip: true
             spacing: 6
             model: view.shown
@@ -470,9 +596,11 @@ FocusScope {
                 id: row
                 required property var modelData
                 readonly property bool editing: view.editId === row.modelData.id
+                readonly property bool hasTotp: row.modelData.totp && String(row.modelData.totp).trim().length > 0
+                readonly property var totpInfo: (view.totpCodes && view.totpCodes[String(row.modelData.id)]) ? view.totpCodes[String(row.modelData.id)] : null
 
                 width: list.width
-                height: row.editing ? 112 : 56
+                height: row.editing ? 136 : (row.hasTotp ? 96 : 56)
                 radius: 12
                 color: rowMa.containsMouse ? Qt.rgba(1, 1, 1, 0.09) : Qt.rgba(1, 1, 1, 0.05)
                 border.width: 1
@@ -501,11 +629,11 @@ FocusScope {
                             Layout.preferredWidth: 30
                             Layout.preferredHeight: 30
                             radius: 9
-                            color: Qt.rgba(1, 1, 1, 0.08)
+                            color: row.hasTotp ? Qt.rgba(view.sys.colOn.r, view.sys.colOn.g, view.sys.colOn.b, 0.16) : Qt.rgba(1, 1, 1, 0.08)
                             Glyph {
                                 anchors.fill: parent
-                                glyph: String.fromCodePoint(0xF0306)     // key
-                                color: view.sys.colMuted
+                                glyph: String.fromCodePoint(row.hasTotp ? 0xF0FC6 : 0xF0306)
+                                color: row.hasTotp ? view.sys.colOn : view.sys.colMuted
                                 fontFam: view.sys.fontFam
                                 size: view.sys.iconSize - 4
                             }
@@ -514,12 +642,27 @@ FocusScope {
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 1
-                            Text {
-                                Layout.fillWidth: true
-                                text: String(row.modelData.label)
-                                color: view.sys.colFg
-                                elide: Text.ElideRight
-                                font { family: view.sys.fontFam; pixelSize: view.sys.fontSize - 2; bold: true }
+                            RowLayout {
+                                spacing: 6
+                                Text {
+                                    text: String(row.modelData.label)
+                                    color: view.sys.colFg
+                                    elide: Text.ElideRight
+                                    font { family: view.sys.fontFam; pixelSize: view.sys.fontSize - 2; bold: true }
+                                }
+                                Rectangle {
+                                    visible: row.hasTotp
+                                    Layout.preferredHeight: 14
+                                    Layout.preferredWidth: 28
+                                    radius: 7
+                                    color: Qt.rgba(view.sys.colOn.r, view.sys.colOn.g, view.sys.colOn.b, 0.22)
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "2FA"
+                                        color: view.sys.colOn
+                                        font { family: view.sys.fontFam; pixelSize: 8; bold: true }
+                                    }
+                                }
                             }
                             Text {
                                 Layout.fillWidth: true
@@ -557,6 +700,8 @@ FocusScope {
                                 }
                                 Timer { id: doneTimer; interval: 1200; onTriggered: copyMa.done = false }
                             }
+                            ToolTip.visible: copyMa.containsMouse
+                            ToolTip.text: (view.sys && view.sys.isPt) ? "Copiar Senha" : "Copy Password"
                         }
 
                         // editing
@@ -604,37 +749,136 @@ FocusScope {
                         }
                     }
 
-                    // edit line: name, login, password
-                    RowLayout {
+                    // Barra de 2FA (TOTP) quando não está editando
+                    Rectangle {
+                        visible: row.hasTotp && !row.editing
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 32
+                        radius: 8
+                        color: Qt.rgba(view.sys.colOn.r, view.sys.colOn.g, view.sys.colOn.b, 0.12)
+                        border.color: Qt.rgba(view.sys.colOn.r, view.sys.colOn.g, view.sys.colOn.b, 0.30)
+                        border.width: 1
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 8
+                            spacing: 8
+
+                            Text {
+                                text: "󰒃"
+                                color: view.sys.colOn
+                                font { family: view.sys.fontFam; pixelSize: 13 }
+                            }
+
+                            Text {
+                                text: "2FA"
+                                color: view.sys.colOn
+                                font { family: view.sys.fontFam; pixelSize: 10; bold: true }
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: (row.totpInfo && row.totpInfo.formatted) ? row.totpInfo.formatted : ((row.totpInfo && row.totpInfo.code) ? row.totpInfo.code : "------")
+                                color: view.sys.colFg
+                                font { family: "monospace"; pixelSize: 15; bold: true; letterSpacing: 2 }
+                            }
+
+                            // Contador de segundos restantes (ex: 24s)
+                            Rectangle {
+                                Layout.preferredHeight: 20
+                                Layout.preferredWidth: 32
+                                radius: 10
+                                color: (row.totpInfo && row.totpInfo.remaining <= 5) ? Qt.rgba(1, 0.27, 0.27, 0.25) : Qt.rgba(1, 1, 1, 0.08)
+                                border.color: (row.totpInfo && row.totpInfo.remaining <= 5) ? view.sys.colCrit : "transparent"
+                                border.width: 1
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: (row.totpInfo && row.totpInfo.remaining !== undefined) ? (row.totpInfo.remaining + "s") : "30s"
+                                    color: (row.totpInfo && row.totpInfo.remaining <= 5) ? view.sys.colCrit : view.sys.colMuted
+                                    font { family: view.sys.fontFam; pixelSize: 9; bold: true }
+                                }
+                            }
+
+                            // Botão de Copiar Código 2FA
+                            Rectangle {
+                                Layout.preferredWidth: 26
+                                Layout.preferredHeight: 26
+                                radius: 8
+                                color: copyTotpMa.containsMouse ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.08)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: copyTotpMa.done ? "󰄬" : "󰆏"
+                                    color: copyTotpMa.done ? view.sys.colOk : view.sys.colFg
+                                    font { family: view.sys.fontFam; pixelSize: 12 }
+                                }
+
+                                MouseArea {
+                                    id: copyTotpMa
+                                    property bool done: false
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        var c = (row.totpInfo && row.totpInfo.code) ? row.totpInfo.code : "";
+                                        if (c) {
+                                            view.sys.vaultCopy(c);
+                                            done = true;
+                                            totpDoneTimer.restart();
+                                        }
+                                    }
+                                    Timer { id: totpDoneTimer; interval: 1200; onTriggered: copyTotpMa.done = false }
+                                }
+                                ToolTip.visible: copyTotpMa.containsMouse
+                                ToolTip.text: (view.sys && view.sys.isPt) ? "Copiar Código 2FA" : "Copy 2FA Code"
+                            }
+                        }
+                    }
+
+                    // edit block: 2 linhas de campos
+                    ColumnLayout {
                         visible: row.editing
                         Layout.fillWidth: true
                         spacing: 6
 
-                        Field { id: fLabel; text: String(row.modelData.label); hint: view.sys.tr("Название") }
-                        Field { id: fLogin; text: String(row.modelData.login); hint: view.sys.tr("Логин") }
-                        Field { id: fPw; text: String(row.modelData.pw); hint: view.sys.tr("Пароль"); secret: true }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            Field { id: fLabel; text: String(row.modelData.label); hint: (view.sys && view.sys.isPt) ? "Nome do Serviço" : view.sys.tr("Название") }
+                            Field { id: fLogin; text: String(row.modelData.login); hint: (view.sys && view.sys.isPt) ? "Usuário / E-mail" : view.sys.tr("Логин") }
+                        }
 
-                        Rectangle {
-                            Layout.preferredWidth: 60
-                            Layout.preferredHeight: 32
-                            radius: 10
-                            color: okMa.containsMouse ? Qt.rgba(view.sys.colOk.r, view.sys.colOk.g, view.sys.colOk.b, 0.28)
-                                                      : Qt.rgba(view.sys.colOk.r, view.sys.colOk.g, view.sys.colOk.b, 0.16)
-                            Text {
-                                anchors.centerIn: parent
-                                text: view.sys.tr("ОК")
-                                color: view.sys.colOk
-                                font { family: view.sys.fontFam; pixelSize: view.sys.fontSize - 3 }
-                            }
-                            MouseArea {
-                                id: okMa
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    view.sys.vaultUpdate(String(row.modelData.id),
-                                                         fLabel.text, fLogin.text, fPw.text);
-                                    view.editId = "";
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            Field { id: fPw; text: String(row.modelData.pw); hint: (view.sys && view.sys.isPt) ? "Senha" : view.sys.tr("Пароль"); secret: true }
+                            Field { id: fTotp; text: String(row.modelData.totp || ""); hint: (view.sys && view.sys.isPt) ? "Chave 2FA / TOTP (opcional)" : "2FA Secret (TOTP)"; secret: true }
+
+                            Rectangle {
+                                Layout.preferredWidth: 54
+                                Layout.preferredHeight: 32
+                                radius: 10
+                                color: okMa.containsMouse ? Qt.rgba(view.sys.colOk.r, view.sys.colOk.g, view.sys.colOk.b, 0.28)
+                                                          : Qt.rgba(view.sys.colOk.r, view.sys.colOk.g, view.sys.colOk.b, 0.16)
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "OK"
+                                    color: view.sys.colOk
+                                    font { family: view.sys.fontFam; pixelSize: view.sys.fontSize - 3; bold: true }
+                                }
+                                MouseArea {
+                                    id: okMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        view.sys.vaultUpdate(String(row.modelData.id),
+                                                             fLabel.text, fLogin.text, fPw.text, fTotp.text);
+                                        view.editId = "";
+                                        view.refreshTotp();
+                                    }
                                 }
                             }
                         }

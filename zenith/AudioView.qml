@@ -58,6 +58,12 @@ Item {
                     if (st && st.running !== undefined) {
                         view.eqEnabled = st.running;
                     }
+                    if (st && st.gains && Array.isArray(st.gains) && st.gains.length === 8) {
+                        view.eqGains = st.gains;
+                    }
+                    if (st && st.preset) {
+                        view.eqCurrentPreset = st.preset;
+                    }
                 } catch (e) {}
             }
         }
@@ -76,7 +82,7 @@ Item {
                 pEqAction.command = ["python3", Quickshell.env("HOME") + "/.config/zenith/scripts/equalizer.py", "stop"];
             } else {
                 var gainsStr = JSON.stringify(view.eqGains);
-                pEqAction.command = ["python3", Quickshell.env("HOME") + "/.config/zenith/scripts/equalizer.py", "apply", gainsStr];
+                pEqAction.command = ["python3", Quickshell.env("HOME") + "/.config/zenith/scripts/equalizer.py", "apply", gainsStr, view.eqCurrentPreset];
             }
             pEqAction.running = true;
         }

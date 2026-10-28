@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Zenith Vault TOTP (2FA) Service
+Panacea Vault TOTP (2FA) Service
 RFC 6238 compliant TOTP generator for two-factor authentication.
 """
 
